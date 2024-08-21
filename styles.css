@@ -1,0 +1,416 @@
+/* Base Styling */
+body {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    font-family: "Fira Code", monospace;
+    background-color: #fafafa;
+    color: #383a42;
+    height: 100vh;
+    overflow: hidden; /* Prevent body from scrolling */
+    transition:
+        background-color 0.3s,
+        color 0.3s;
+}
+
+#container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+#input-section,
+#toc-section,
+#doc-section {
+    padding: 20px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+#input-section {
+    width: 25%; /* Initial width */
+    background-color: #f0f0f1;
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.3s;
+    padding-right: 30px;
+    overflow-x: hidden;
+}
+
+#toc-section {
+    width: 15%; /* Initial width */
+    background-color: #ffffff;
+    transition: background-color 0.3s;
+}
+
+#doc-section {
+    width: 60%; /* Initial width */
+    background-color: #ffffff;
+    transition:
+        background-color 0.3s,
+        border-color 0.3s;
+}
+
+/* Divider Styling */
+.divider {
+    width: 5px;
+    cursor: col-resize;
+    background-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+.divider::before {
+    content: "";
+    display: block;
+    width: 3px;
+    height: 3px;
+    background-color: #ccc;
+    border-radius: 50%;
+    box-shadow:
+        0 0 0 0 #ccc,
+        0 6px 0 0 #ccc,
+        0 12px 0 0 #ccc;
+    transition: background-color 0.3s;
+}
+
+.divider:hover::before {
+    background-color: #aaa;
+}
+
+/* Dark Mode Divider Styling */
+.dark-mode .divider::before {
+    background-color: #555;
+    box-shadow:
+        0 0 0 0 #555,
+        0 6px 0 0 #555,
+        0 12px 0 0 #555;
+}
+
+.dark-mode .divider:hover::before {
+    background-color: #777;
+}
+
+/* Header Input Styling */
+#header-input {
+    width: 100%; /* Corrected width */
+    height: 40px; /* Adjusted height for header input */
+    margin-bottom: 10px;
+    padding: 8px;
+    font-size: 1.2rem; /* Larger font size for prominence */
+    color: #383a42;
+    background-color: #ffffff;
+    border: 1px solid #dcdcdc;
+    font-family: "Fira Code", monospace;
+    transition:
+        background-color 0.3s,
+        border-color 0.3s;
+}
+
+#header-input:focus {
+    outline: none;
+    border-color: #56b6c2;
+}
+
+/* Body Input Styling */
+#body-input {
+    width: 100%; /* Corrected width */
+    flex-grow: 1; /* Allow the body input to take up more space */
+    margin-bottom: 10px;
+    padding: 8px;
+    font-size: 1rem; /* Smaller font size for body text */
+    color: #383a42;
+    background-color: #ffffff;
+    border: 1px solid #dcdcdc;
+    font-family: "Fira Code", monospace;
+    transition:
+        background-color 0.3s,
+        border-color 0.3s;
+}
+
+#body-input:focus {
+    outline: none;
+    border-color: #56b6c2;
+}
+
+/* Add Note Button Styling */
+button {
+    width: auto; /* Adjust button width to be smaller */
+    align-self: flex-end; /* Align the button to the right */
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #ffffff;
+    background-color: #0366d6;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #0355b3;
+}
+
+button:focus {
+    outline: none;
+    border-color: #56b6c2;
+}
+
+/* Markdown Body Styling */
+.markdown-body {
+    padding: 10px;
+    color: #383a42; /* Ensure good readability */
+}
+
+/* TOC Link Styling (Light Mode) */
+#toc-section a {
+    color: #0366d6; /* A stronger blue for better visibility */
+    text-decoration: none;
+    font-weight: 500;
+}
+
+#toc-section a:hover {
+    text-decoration: underline;
+}
+
+/* Link Styling for Main Content (Light Mode) */
+.markdown-body a {
+    color: #0366d6; /* A stronger blue for better visibility in light mode */
+    text-decoration: none;
+}
+
+.markdown-body a:hover {
+    text-decoration: underline;
+}
+
+/* Scrollbar Styling (Light Mode) */
+body,
+#input-section,
+#toc-section,
+#doc-section {
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #c0c0c0 #e5e5e6; /* Thumb and Track colors */
+}
+
+body::-webkit-scrollbar,
+#input-section::-webkit-scrollbar,
+#toc-section::-webkit-scrollbar,
+#doc-section::-webkit-scrollbar {
+    width: 12px;
+}
+
+body::-webkit-scrollbar-track,
+#input-section::-webkit-scrollbar-track,
+#toc-section::-webkit-scrollbar-track,
+#doc-section::-webkit-scrollbar-track {
+    background: #e5e5e6;
+}
+
+body::-webkit-scrollbar-thumb,
+#input-section::-webkit-scrollbar-thumb,
+#toc-section::-webkit-scrollbar-thumb,
+#doc-section::-webkit-scrollbar-thumb {
+    background-color: #c0c0c0;
+    border-radius: 10px;
+    border: 2px solid #e5e5e6;
+}
+
+/* Dark Mode Styling - One Dark Theme */
+.dark-mode {
+    background-color: #282c34;
+    color: #abb2bf;
+}
+
+.dark-mode #input-section {
+    background-color: #3a3f4b;
+}
+
+.dark-mode #toc-section {
+    background-color: #282c34;
+}
+
+.dark-mode #doc-section {
+    background-color: #282c34;
+    border-color: #3a3f4b;
+}
+
+.dark-mode #header-input,
+.dark-mode #body-input,
+.dark-mode button {
+    background-color: #3e4451;
+    border-color: #4b5363;
+    color: #abb2bf;
+    font-family: "Fira Code", monospace;
+}
+
+.dark-mode #header-input:focus,
+.dark-mode #body-input:focus,
+.dark-mode button:focus {
+    border-color: #61afef;
+}
+
+.dark-mode .markdown-body {
+    color: #abb2bf; /* Ensure good readability */
+}
+
+/* TOC Link Styling (Dark Mode) */
+.dark-mode #toc-section a {
+    color: #61afef; /* A brighter blue for better visibility in dark mode */
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.dark-mode #toc-section a:hover {
+    text-decoration: underline;
+}
+
+/* Link Styling for Main Content (Dark Mode) */
+.dark-mode .markdown-body a {
+    color: #61afef; /* A brighter blue that contrasts well with dark backgrounds */
+    text-decoration: none;
+}
+
+.dark-mode .markdown-body a:hover {
+    text-decoration: underline;
+}
+
+/* Scrollbar Styling (Dark Mode) */
+.dark-mode body,
+.dark-mode #input-section,
+.dark-mode #toc-section,
+.dark-mode #doc-section {
+    scrollbar-width: thin;
+    scrollbar-color: #555b6b #3a3f4b;
+}
+
+.dark-mode::-webkit-scrollbar,
+.dark-mode #input-section::-webkit-scrollbar,
+.dark-mode #toc-section::-webkit-scrollbar,
+.dark-mode #doc-section::-webkit-scrollbar {
+    width: 12px;
+}
+
+.dark-mode::-webkit-scrollbar-track,
+.dark-mode #input-section::-webkit-scrollbar-track,
+.dark-mode #toc-section::-webkit-scrollbar-track,
+.dark-mode #doc-section::-webkit-scrollbar-track {
+    background: #3a3f4b;
+}
+
+.dark-mode::-webkit-scrollbar-thumb,
+.dark-mode #input-section::-webkit-scrollbar-thumb,
+.dark-mode #toc-section::-webkit-scrollbar-thumb,
+.dark-mode #doc-section::-webkit-scrollbar-thumb {
+    background-color: #555b6b;
+    border-radius: 10px;
+    border: 2px solid #3a3f4b;
+}
+
+/* Highlighting for One Light Theme */
+.highlighted {
+    background-color: #e5c07b; /* A soft yellow that matches the One Light theme */
+}
+
+/* Highlighting for One Dark Theme */
+.dark-mode .highlighted {
+    background-color: #e5c07b;
+    color: #d19a66;
+}
+
+/* Styling for the search input */
+#search-input {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.dark-mode #search-input {
+    background-color: #3e4451;
+    color: #abb2bf;
+    border: 1px solid #555b6b;
+}
+
+.toc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.toc-item a {
+    text-decoration: none;
+    color: #0366d6;
+    flex-grow: 1;
+}
+
+.toc-item .delete-button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 10px;
+    color: #e63946;
+}
+
+.toc-item .delete-button:hover {
+    color: #d62828;
+}
+
+.toc-item .delete-button i {
+    font-size: 1rem;
+}
+
+/* Positioning the copy button */
+.copy-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #f5f5f5;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: #333;
+    border-radius: 3px;
+    z-index: 10;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.copy-button:hover {
+    opacity: 1;
+    background-color: #e0e0e0;
+}
+
+.dark-mode .copy-button {
+    background-color: #444;
+    color: #ccc;
+}
+
+.dark-mode .copy-button:hover {
+    background-color: #555;
+}
+
+/* Ensure the pre element does not interfere with the button */
+pre {
+    position: relative;
+    padding: 1em;
+    background: #f5f5f5;
+    border-radius: 5px;
+    overflow: auto; /* Ensure code blocks can scroll if they overflow */
+}
+
+.dark-mode pre {
+    background: #333;
+}
+
+pre code {
+    display: block;
+    padding-right: 60px; /* Space for the button */
+}
