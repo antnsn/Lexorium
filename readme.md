@@ -6,6 +6,10 @@
 
 **Lexorium** is an open-source Electron application designed to streamline the process of managing text and code snippets. It's your go-to solution for those moments when you have text that needs to be stored temporarily before finding its final destination. Whether it's notes, code snippets, or any other text, Lexorium ensures that you can easily save, search, and organize your content.
 
+
+**Lexorium** is proubly build with the help of chatgpt, and is a testament to what is possible with the combination of some knowledge, dedication and computer aid. **Lexorium** is most likely far from optimal, and any contribution is greatly appreciated. 
+
+
 ## Features
 
 - **Three-Column Interface**:

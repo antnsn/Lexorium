@@ -24,7 +24,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx electron-forge make --arch=x64 --platform=win32
+          npx electron-forge make --arch=x64 --platform=win32 --publish
           npx electron-forge publish --arch=x64 --platform=win32
 
   build-macos:
