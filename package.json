@@ -1,6 +1,6 @@
 {
   "name": "Lexorium",
-  "version": "1.2.0",
+  "version": "1.0.0",
   "description": "A basic Electron app to manage notes with markdown support.",
   "main": "main.js",
   "scripts": {
