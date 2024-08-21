@@ -61,7 +61,7 @@
           "name": "@electron-forge/publisher-github",
           "config": {
             "repository": {
-              "owner": "your-github-username",
+              "owner": "antnsn",
               "name": "lexorium"
             },
             "prerelease": false,
