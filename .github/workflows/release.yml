@@ -42,7 +42,7 @@ jobs:
       - name: Build and publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run make -- --arch=amd64 --platform=darwin --publish=always
+        run: npm run make -- --arch=arm64 --platform=darwin --publish=always
 
   build-linux:
     runs-on: ubuntu-latest
