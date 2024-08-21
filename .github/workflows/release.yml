@@ -45,8 +45,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx electron-forge make --arch=arm64 --platform=darwin
-          npx electron-forge publish --arch=arm64 --platform=darwin
+          npx electron-forge make --arch=x64 --platform=darwin
+          npx electron-forge publish --arch=x64 --platform=darwin
 
   build-linux:
     runs-on: ubuntu-latest

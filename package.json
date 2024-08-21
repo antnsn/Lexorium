@@ -37,7 +37,8 @@
           "name": "@electron-forge/maker-squirrel",
           "config": {
             "name": "lexorium",
-            "setupIcon": "assets/icon.ico"
+            "setupIcon": "assets/icon.ico",
+            "setupExe": "LexoriumSetup.exe"
           }
         },
         {

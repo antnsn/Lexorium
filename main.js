@@ -10,6 +10,11 @@ const {
 const path = require("path");
 const fs = require("fs");
 
+if (require("electron-squirrel-startup")) {
+  // Squirrel event handled and app will exit in 1000ms, so don't do anything else
+  app.quit();
+}
+
 let mainWindow;
 let recentFiles = [];
 
@@ -30,7 +35,7 @@ function createWindow() {
   mainWindow.webContents.on("did-finish-load", () => {
     mainWindow.webContents.send(
       "update-dark-mode",
-      nativeTheme.shouldUseDarkColors,
+      nativeTheme.shouldUseDarkColors
     );
   });
 
@@ -92,7 +97,7 @@ function createWindow() {
                 {
                   properties: ["openFile"],
                   filters: [{ name: "Markdown Files", extensions: ["md"] }],
-                },
+                }
               );
               if (!canceled && filePaths.length > 0) {
                 const filePath = filePaths[0];
@@ -158,12 +163,11 @@ function createWindow() {
         {
           label: "System Theme",
           type: "radio",
-          checked: true, // Start with system theme checked by default
           click: () => {
             nativeTheme.themeSource = "system";
             mainWindow.webContents.send(
               "update-dark-mode",
-              nativeTheme.shouldUseDarkColors,
+              nativeTheme.shouldUseDarkColors
             );
           },
         },
@@ -247,7 +251,7 @@ function updateMenu() {
               const content = fs.readFileSync(filePath, "utf-8");
               mainWindow.webContents.send("file-opened", { filePath, content });
             },
-          }),
+          })
         );
       });
 
@@ -256,6 +260,65 @@ function updateMenu() {
   } catch (error) {
     console.error("Error updating menu:", error);
   }
+}
+
+function handleSquirrelEvent() {
+  if (process.argv.length === 1) {
+    return false;
+  }
+
+  const ChildProcess = require("child_process");
+  const path = require("path");
+
+  const appFolder = path.resolve(process.execPath, "..");
+  const rootAtomFolder = path.resolve(appFolder, "..");
+  const updateDotExe = path.resolve(path.join(rootAtomFolder, "Update.exe"));
+  const exeName = path.basename(process.execPath);
+
+  const spawn = function (command, args) {
+    let spawnedProcess;
+
+    try {
+      spawnedProcess = ChildProcess.spawn(command, args, { detached: true });
+    } catch (error) {
+      return;
+    }
+
+    spawnedProcess.on("close", () => {
+      app.quit();
+    });
+  };
+
+  const spawnUpdate = function (args) {
+    return spawn(updateDotExe, args);
+  };
+
+  const squirrelEvent = process.argv[1];
+  switch (squirrelEvent) {
+    case "--squirrel-install":
+    case "--squirrel-updated":
+      // Install desktop and start menu shortcuts
+      spawnUpdate(["--createShortcut", exeName]);
+
+      setTimeout(app.quit, 1000);
+      return true;
+
+    case "--squirrel-uninstall":
+      // Remove desktop and start menu shortcuts
+      spawnUpdate(["--removeShortcut", exeName]);
+
+      setTimeout(app.quit, 1000);
+      return true;
+
+    case "--squirrel-obsolete":
+      app.quit();
+      return true;
+  }
+}
+
+if (handleSquirrelEvent()) {
+  // Squirrel event handled and app will exit in 1000ms, so don't do anything else
+  app.quit();
 }
 
 app.on("ready", () => {
