@@ -1,7 +1,11 @@
-# Lexorium
+
 
 <p align="center">
   <img width=30%; src="assets/icon.png">
+</p>
+
+<p align="center">
+  # Lexorium
 </p>
 
 **Lexorium** is an open-source Electron application designed to streamline the process of managing text and code snippets. It's your go-to solution for those moments when you have text that needs to be stored temporarily before finding its final destination. Whether it's notes, code snippets, or any other text, Lexorium ensures that you can easily save, search, and organize your content.
@@ -35,9 +39,17 @@
 
 ## Installation
 
-To get started with Lexorium, follow these steps:
+All releases of **Lexorium** can be found here: https://github.com/antnsn/Lexorium/releases
+
+> [!IMPORTANT]  
+> Because of unverified developer status, macOS app needs to be granted permission to be opened. 
+> How to guide: https://support.apple.com/en-us/102445
 
 ## Usage
+
+1. **Create a new note**: 
+  1. In the top menu go: file -> new
+  2. Type a new file name and save it somewhere smart.
 
 1. **Adding Notes**:
 
@@ -60,4 +72,4 @@ Lexorium is licensed under the [ISC License](LICENSE).
 
 ---
 
-Created with ❤️ by [Marius Antonsen](https://github.com/your-github-username).
+Created with ❤️ by [Marius Antonsen](https://github.com/antnsn).
