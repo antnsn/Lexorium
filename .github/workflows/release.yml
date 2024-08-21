@@ -23,7 +23,9 @@ jobs:
       - name: Build and publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run make -- --arch=x64 --platform=win32 --publish=always
+        run: |
+          npx electron-forge make --arch=x64 --platform=darwin
+          npx electron-forge publish --arch=x64 --platform=darwin
 
   build-macos:
     runs-on: macos-latest
@@ -42,7 +44,9 @@ jobs:
       - name: Build and publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run make -- --arch=x64 --platform=darwin --publish=always
+        run: |
+          npx electron-forge make --arch=arm64 --platform=darwin
+          npx electron-forge publish --arch=arm64 --platform=darwin
 
   build-linux:
     runs-on: ubuntu-latest
@@ -61,4 +65,6 @@ jobs:
       - name: Build and publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run make -- --arch=x64 --platform=linux --publish=always
+        run: |
+          npx electron-forge make --arch=x64 --platform=linux
+          npx electron-forge publish --arch=x64 --platform=linux
