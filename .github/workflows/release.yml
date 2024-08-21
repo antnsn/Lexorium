@@ -9,6 +9,10 @@ jobs:
   release:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        platform: [win32, darwin, linux]
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -24,4 +28,4 @@ jobs:
       - name: Build and publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run make -- --publish=always
+        run: npm run make -- --arch=x64 --platform=${{ matrix.platform }} --publish=always
