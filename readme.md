@@ -33,6 +33,22 @@ Proudly built with the assistance of ChatGPT, **Lexorium** is a testament to wha
 
 All releases of **Lexorium** can be found here: [Lexorium Releases](https://github.com/antnsn/Lexorium/releases).
 
+## Installation MacOS
+
+To install **Lexorium** using Homebrew Cask:
+
+1. Tap the repository:
+
+   ```bash
+   brew tap antnsn/lexorium
+   ```
+
+2. Install **Lexorium**:
+
+   ```bash
+   brew install --cask lexorium
+   ```
+
 > **Important:**  
 > Due to unverified developer status, the macOS app requires manual permission to be opened.  
 > [How to guide](https://support.apple.com/en-us/102445)
