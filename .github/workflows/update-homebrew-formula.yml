@@ -13,6 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Print release assets
+        run: |
+          echo "Asset URLs:"
+          for asset in "${{ github.event.release.assets[@] }}"; do
+            echo "$asset.browser_download_url"
+          done
+
       - name: Download the released package
         run: |
           curl -LO ${{ github.event.release.assets[2].browser_download_url }}
