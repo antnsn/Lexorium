@@ -1,9 +1,9 @@
 name: Update Homebrew Formula
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
-  workflow_dispatch: # This allows you to manually trigger the workflow
 
 jobs:
   update-formula:
@@ -13,12 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Download and parse release assets
-        id: download_asset
+      - name: Download the released package
         run: |
-          asset_url=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.release.tag_name }} | jq -r '.assets[] | select(.name | contains("darwin") and endswith(".zip")) | .browser_download_url')
-          curl -LO $asset_url
-          echo "asset_url=$asset_url" >> $GITHUB_ENV
+          curl -LO ${{ github.event.release.assets[2].browser_download_url }}
 
       - name: Calculate SHA-256 checksum
         id: sha256
