@@ -2,6 +2,7 @@ const { ipcRenderer } = require("electron");
 
 let markdownContent = "";
 let currentFilePath = "";
+let undoStack = []; // Stack to keep track of deleted sections for undo
 
 // Function Definitions
 const updateDocumentView = () => {
@@ -28,7 +29,7 @@ const updateDocumentView = () => {
 
     documentView.innerHTML = htmlContent;
 
-    // Add copy buttons to code blocks and apply syntax highlighting
+    // Add copy buttons to code blocks
     document.querySelectorAll("pre code").forEach((block) => {
       const pre = block.parentNode;
       pre.style.position = "relative"; // Ensure pre is positioned for absolute button positioning
@@ -108,9 +109,28 @@ const deleteSection = (index) => {
     return;
   }
 
+  // Save the deleted section to the undo stack
+  const deletedSection = markdownContent.slice(startPos, endPos);
+  undoStack.push(deletedSection);
+
   // Remove the section between the start and end markers
   markdownContent =
     markdownContent.slice(0, startPos) + markdownContent.slice(endPos);
+
+  updateDocumentView();
+  updateTOC();
+  saveToFile();
+};
+
+// Function to undo the last delete operation
+const undoDelete = () => {
+  if (undoStack.length === 0) {
+    alert("Nothing to undo.");
+    return;
+  }
+
+  const lastDeleted = undoStack.pop();
+  markdownContent += lastDeleted;
 
   updateDocumentView();
   updateTOC();
@@ -174,6 +194,7 @@ ipcRenderer.on("update-dark-mode", (event, isDarkMode) => {
 });
 
 const addNoteButton = document.getElementById("add-note");
+const undoButton = document.getElementById("undo"); // Add this line to get the Undo button
 const tocSection = document.getElementById("toc");
 const documentView = document.getElementById("document-view");
 
@@ -195,18 +216,12 @@ addNoteButton.addEventListener("click", () => {
     return; // Stop the submission if the body is empty
   }
 
-  // Wrap the bodyValue in code block tags if it looks like code
-  const isCodeBlock = bodyValue.includes("\n") || bodyValue.includes("```");
-  const formattedBody = isCodeBlock
-    ? `\`\`\`\n${bodyValue}\n\`\`\``
-    : bodyValue;
-
   // Add markers for the start and end of the section
   const newNote = `
 <!-- start-section-${headerValue.replace(/\s/g, "-")} -->
 ## ${headerValue}
 
-${formattedBody}
+${bodyValue}
 <!-- end-section-${headerValue.replace(/\s/g, "-")} -->
 
 `;
@@ -221,6 +236,9 @@ ${formattedBody}
   headerInput.value = "";
   bodyInput.value = "";
 });
+
+// Attach event listener to the Undo button
+undoButton.addEventListener("click", undoDelete);
 
 // Column Resizing Logic
 const dividers = document.querySelectorAll(".divider");
@@ -258,14 +276,14 @@ document.getElementById("search-input").addEventListener("input", (event) => {
   const searchTerm = event.target.value.toLowerCase();
 
   // Clear any previous highlights
-  document.querySelectorAll(".highlighted").forEach((el) => {
+  document.querySelectorAll
+  (".highlighted").forEach((el) => {
     el.classList.remove("highlighted");
   });
 
   // If the search term is empty, reset the TOC and return
   if (searchTerm === "") {
-    update;
-    TOC();
+    updateTOC();
     return;
   }
 
@@ -307,4 +325,12 @@ document.getElementById("search-input").addEventListener("input", (event) => {
       deleteSection(index);
     });
   });
+});
+
+// Undo with Ctrl+Z or Cmd+Z
+document.addEventListener("keydown", (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key === "z") {
+    event.preventDefault();
+    undoDelete();
+  }
 });

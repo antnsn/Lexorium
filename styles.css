@@ -38,9 +38,47 @@ body {
 }
 
 #toc-section {
-    width: 15%; /* Initial width */
+    width: 15%;
     background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
     transition: background-color 0.3s;
+}
+
+#toc {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+#undo-container {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+#undo {
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #ffffff;
+    background-color: #0366d6;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 100%; /* Make the button fill the container width */
+}
+
+#undo:hover {
+    background-color: #0355b3;
+}
+
+#undo:focus {
+    outline: none;
+    border-color: #56b6c2;
 }
 
 #doc-section {
@@ -414,3 +452,4 @@ pre code {
     display: block;
     padding-right: 60px; /* Space for the button */
 }
+
