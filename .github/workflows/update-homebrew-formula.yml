@@ -13,20 +13,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Print release assets
+      - name: Download and parse release assets
+        id: download_asset
         run: |
-          echo "Asset URLs:"
-          for asset in "${{ github.event.release.assets[@] }}"; do
-            echo "$asset.browser_download_url"
-          done
-
-      - name: Find and download the asset
-        run: |
-          for asset in "${{ github.event.release.assets[@] }}"; do
-            if [[ "$asset.name" == *".zip" ]]; then
-              curl -LO "$asset.browser_download_url"
-            fi
-          done
+          asset_url=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.release.tag_name }} | jq -r '.assets[] | select(.name | endswith(".zip")) | .browser_download_url')
+          curl -LO $asset_url
+          echo "asset_url=$asset_url" >> $GITHUB_ENV
 
       - name: Calculate SHA-256 checksum
         id: sha256
