@@ -3,7 +3,6 @@ name: Update Homebrew Formula
 on:
   release:
     types: [published]
-  workflow_dispatch:
 
 jobs:
   update-formula:
@@ -16,7 +15,7 @@ jobs:
       - name: Download and parse release assets
         id: download_asset
         run: |
-          asset_url=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tag/${{ github.event.release.tag_name }} | jq -r '.assets[] | select(.name | endswith(".zip")) | .browser_download_url')
+          asset_url=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.release.tag_name }} | jq -r '.assets[] | select(.name | contains("darwin") and endswith(".zip")) | .browser_download_url')
           curl -LO $asset_url
           echo "asset_url=$asset_url" >> $GITHUB_ENV
 
