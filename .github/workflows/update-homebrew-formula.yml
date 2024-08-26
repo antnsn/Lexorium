@@ -1,0 +1,38 @@
+name: Update Homebrew Formula
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download the released package
+        run: |
+          curl -LO ${{ github.event.release.assets[2].browser_download_url }}
+
+      - name: Calculate SHA-256 checksum
+        id: sha256
+        run: echo "::set-output name=sha256::$(sha256sum *.zip | awk '{print $1}')"
+
+      - name: Checkout the Homebrew tap repository
+        uses: actions/checkout@v2
+        with:
+          repository: antnsn/homebrew-lexorium
+          path: homebrew-tap
+
+      - name: Update Homebrew Cask
+        run: |
+          sed -i "s/version \".*\"/version \"${{ github.event.release.tag_name }}\"/" homebrew-tap/Casks/lexorium.rb
+          sed -i "s/sha256 \".*\"/sha256 \"${{ steps.sha256.outputs.sha256 }}\"/" homebrew-tap/Casks/lexorium.rb
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "GitHub Actions"
+          cd homebrew-tap
+          git commit -am "Update version and SHA-256 for version ${{ github.event.release.tag_name }}"
+          git push origin main
