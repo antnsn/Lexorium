@@ -10,13 +10,37 @@ const {
 const path = require("path");
 const fs = require("fs");
 
-if (require("electron-squirrel-startup")) {
-  // Squirrel event handled and app will exit in 1000ms, so don't do anything else
-  app.quit();
-}
-
 let mainWindow;
 let recentFiles = [];
+const configPath = path.join(app.getPath("userData"), "config.json");
+
+function saveLastOpenedFile(filePath) {
+  const config = { lastOpenedFile: filePath };
+  fs.writeFileSync(configPath, JSON.stringify(config));
+}
+
+function loadLastOpenedFile() {
+  if (fs.existsSync(configPath)) {
+    const config = JSON.parse(fs.readFileSync(configPath));
+    if (config.lastOpenedFile && fs.existsSync(config.lastOpenedFile)) {
+      return config.lastOpenedFile;
+    }
+  }
+  return null;
+}
+
+function createTempFile() {
+  const tempFilePath = path.join(app.getPath("userData"), "temp.md");
+  fs.writeFileSync(tempFilePath, ""); // Create an empty temporary markdown file
+  return tempFilePath;
+}
+
+function cleanUpTempFiles() {
+  const tempFilePath = path.join(app.getPath("userData"), "temp.md");
+  if (fs.existsSync(tempFilePath)) {
+    fs.unlinkSync(tempFilePath);
+  }
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -37,6 +61,17 @@ function createWindow() {
       "update-dark-mode",
       nativeTheme.shouldUseDarkColors
     );
+
+    let lastOpenedFile = loadLastOpenedFile();
+    if (!lastOpenedFile) {
+      lastOpenedFile = createTempFile(); // Create a temporary file if no previous file was opened
+    }
+
+    const content = fs.readFileSync(lastOpenedFile, "utf-8");
+    mainWindow.webContents.send("file-opened", {
+      filePath: lastOpenedFile,
+      content,
+    });
   });
 
   const isMac = process.platform === "darwin";
@@ -76,7 +111,7 @@ function createWindow() {
 
               if (filePath) {
                 fs.writeFileSync(filePath, ""); // Create an empty markdown file
-                addToRecentFiles(filePath);
+                saveLastOpenedFile(filePath);
                 mainWindow.webContents.send("file-opened", {
                   filePath,
                   content: "",
@@ -102,7 +137,7 @@ function createWindow() {
               if (!canceled && filePaths.length > 0) {
                 const filePath = filePaths[0];
                 const content = fs.readFileSync(filePath, "utf-8");
-                addToRecentFiles(filePath);
+                saveLastOpenedFile(filePath);
                 mainWindow.webContents.send("file-opened", {
                   filePath,
                   content,
@@ -200,10 +235,7 @@ function createWindow() {
 
   ipcMain.handle("file:save", (event, data) => {
     try {
-      if (data.filePath) {
-        fs.writeFileSync(data.filePath, data.content);
-        addToRecentFiles(data.filePath);
-      } else {
+      if (data.filePath.includes("temp.md")) {
         const savePath = dialog.showSaveDialogSync(mainWindow, {
           title: "Save Markdown File",
           defaultPath: "untitled.md",
@@ -212,12 +244,16 @@ function createWindow() {
 
         if (savePath) {
           fs.writeFileSync(savePath, data.content);
-          addToRecentFiles(savePath);
+          saveLastOpenedFile(savePath);
+          fs.unlinkSync(data.filePath); // Remove the temporary file after saving
           mainWindow.webContents.send("file-opened", {
             filePath: savePath,
             content: data.content,
           });
         }
+      } else {
+        fs.writeFileSync(data.filePath, data.content);
+        saveLastOpenedFile(data.filePath);
       }
     } catch (error) {
       console.error("Error saving file:", error);
@@ -225,103 +261,8 @@ function createWindow() {
   });
 }
 
-function addToRecentFiles(filePath) {
-  if (!recentFiles.includes(filePath)) {
-    recentFiles.unshift(filePath);
-    if (recentFiles.length > 5) {
-      recentFiles.pop();
-    }
-    updateMenu();
-  }
-}
-
-function updateMenu() {
-  try {
-    const menu = Menu.getApplicationMenu();
-    const recentFilesMenu = menu.getMenuItemById("recent-files");
-
-    if (recentFilesMenu) {
-      recentFilesMenu.submenu.clear();
-
-      recentFiles.forEach((filePath) => {
-        recentFilesMenu.submenu.append(
-          new MenuItem({
-            label: path.basename(filePath),
-            click: () => {
-              const content = fs.readFileSync(filePath, "utf-8");
-              mainWindow.webContents.send("file-opened", { filePath, content });
-            },
-          })
-        );
-      });
-
-      Menu.setApplicationMenu(menu);
-    }
-  } catch (error) {
-    console.error("Error updating menu:", error);
-  }
-}
-
-function handleSquirrelEvent() {
-  if (process.argv.length === 1) {
-    return false;
-  }
-
-  const ChildProcess = require("child_process");
-  const path = require("path");
-
-  const appFolder = path.resolve(process.execPath, "..");
-  const rootAtomFolder = path.resolve(appFolder, "..");
-  const updateDotExe = path.resolve(path.join(rootAtomFolder, "Update.exe"));
-  const exeName = path.basename(process.execPath);
-
-  const spawn = function (command, args) {
-    let spawnedProcess;
-
-    try {
-      spawnedProcess = ChildProcess.spawn(command, args, { detached: true });
-    } catch (error) {
-      return;
-    }
-
-    spawnedProcess.on("close", () => {
-      app.quit();
-    });
-  };
-
-  const spawnUpdate = function (args) {
-    return spawn(updateDotExe, args);
-  };
-
-  const squirrelEvent = process.argv[1];
-  switch (squirrelEvent) {
-    case "--squirrel-install":
-    case "--squirrel-updated":
-      // Install desktop and start menu shortcuts
-      spawnUpdate(["--createShortcut", exeName]);
-
-      setTimeout(app.quit, 1000);
-      return true;
-
-    case "--squirrel-uninstall":
-      // Remove desktop and start menu shortcuts
-      spawnUpdate(["--removeShortcut", exeName]);
-
-      setTimeout(app.quit, 1000);
-      return true;
-
-    case "--squirrel-obsolete":
-      app.quit();
-      return true;
-  }
-}
-
-if (handleSquirrelEvent()) {
-  // Squirrel event handled and app will exit in 1000ms, so don't do anything else
-  app.quit();
-}
-
 app.on("ready", () => {
+  cleanUpTempFiles(); // Ensure any leftover temp files are removed
   createWindow();
 });
 
@@ -330,5 +271,6 @@ app.on("activate", () => {
 });
 
 app.on("window-all-closed", () => {
+  cleanUpTempFiles(); // Clean up temp files on exit
   if (process.platform !== "darwin") app.quit();
 });
