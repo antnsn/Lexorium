@@ -1,9 +1,9 @@
 name: Update Homebrew Formula
 
 on:
-  workflow_dispatch:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   update-formula:
@@ -20,9 +20,13 @@ jobs:
             echo "$asset.browser_download_url"
           done
 
-      - name: Download the released package
+      - name: Find and download the asset
         run: |
-          curl -LO ${{ github.event.release.assets[2].browser_download_url }}
+          for asset in "${{ github.event.release.assets[@] }}"; do
+            if [[ "$asset.name" == *".zip" ]]; then
+              curl -LO "$asset.browser_download_url"
+            fi
+          done
 
       - name: Calculate SHA-256 checksum
         id: sha256
