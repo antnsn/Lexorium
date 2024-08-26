@@ -1,13 +1,17 @@
-name: Release
+name: Build and Release
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
 jobs:
   build-windows:
     runs-on: windows-latest
+    if: github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -20,15 +24,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build and publish
+      - name: Build for Windows
+        run: npx electron-forge make --arch=x64 --platform=win32
+
+      - name: Publish to GitHub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx electron-forge make --arch=x64 --platform=win32 --publish
-          npx electron-forge publish --arch=x64 --platform=win32
+        run: npx electron-forge publish --arch=x64 --platform=win32
 
   build-macos:
     runs-on: macos-latest
+    if: github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -41,15 +48,42 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build and publish
+      - name: Build for macOS
+        run: npx electron-forge make --arch=x64 --platform=darwin
+
+      - name: Publish to GitHub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx electron-forge make --arch=x64 --platform=darwin
-          npx electron-forge publish --arch=x64 --platform=darwin
+        run: npx electron-forge publish --arch=x64 --platform=darwin
 
   build-linux:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build for Linux
+        run: npx electron-forge make --arch=x64 --platform=linux
+
+      - name: Publish to GitHub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-forge publish --arch=x64 --platform=linux
+
+  build-test-windows:
+    runs-on: windows-latest
+    if: github.event_name == 'pull_request'    
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -63,8 +97,40 @@ jobs:
         run: npm install
 
       - name: Build and publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx electron-forge make --arch=x64 --platform=linux
-          npx electron-forge publish --arch=x64 --platform=linux
+        run: npx electron-forge make --arch=x64 --platform=win32 
+
+  build-test-macos:
+    runs-on: macos-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build and publish
+        run: npx electron-forge make --arch=x64 --platform=darwin
+
+  build-test-linux:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build and publish
+        run: npx electron-forge make --arch=x64 --platform=linux
