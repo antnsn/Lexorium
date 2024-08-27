@@ -1,16 +1,49 @@
-/* Base Styling */
+:root {
+    --font-family: "Fira Code", monospace;
+    --font-color-light: #383a42;
+    --font-color-dark: #abb2bf;
+    --background-color-light: #fafafa;
+    --background-color-dark: #282c34;
+    --input-background-light: #ffffff;
+    --input-background-dark: #3e4451;
+    --border-color-light: #dcdcdc;
+    --border-color-dark: #4b5363;
+    --focus-border-color: #56b6c2;
+    --highlight-color-light: #e5c07b;
+    --highlight-color-dark: #e5c07b;
+    --highlight-text-color-dark: #282c34;
+    --link-color-light: #4e91c8;
+    --link-color-dark: #61afef;
+    --button-background-color: #282c34;
+    --button-hover-background-color: #98c379;
+    --button-text-color: #ffffff;
+    --divider-color-light: #ccc;
+    --divider-color-dark: #282c34;
+    --scrollbar-thumb-light: #c0c0c0;
+    --scrollbar-thumb-dark: #555b6b;
+    --scrollbar-track-light: #e5e5e6;
+    --scrollbar-track-dark: #3a3f4b;
+    --toc-background-color-light: #ffffff;
+    --toc-background-color-dark: #282c34;
+    --section-padding: 25px;
+    --transition-duration: 0.3s;
+}
+
 body {
     display: flex;
     margin: 0;
     padding: 0;
-    font-family: "Fira Code", monospace;
-    background-color: #fafafa;
-    color: #383a42;
+    font-family: var(--font-family);
+    background-color: var(--background-color-light);
+    color: var(--font-color-light);
     height: 100vh;
-    overflow: hidden; /* Prevent body from scrolling */
-    transition:
-        background-color 0.3s,
-        color 0.3s;
+    overflow: hidden;
+    transition: background-color var(--transition-duration), color var(--transition-duration);
+}
+
+.dark-mode body {
+    background-color: var(--background-color-dark);
+    color: var(--font-color-dark);
 }
 
 #container {
@@ -29,7 +62,7 @@ body {
         color: transparent;
         -webkit-background-clip: text;
         background-clip: text;
-    }˝˝
+    }
 }
 
 .dark-mode #logo {
@@ -48,32 +81,39 @@ body {
 #input-section,
 #toc-section,
 #doc-section {
-    padding: 25px;
+    padding: var(--section-padding);
     overflow-y: auto;
     overflow-x: auto;
     box-sizing: border-box;
 }
 
 #input-section {
-    width: 25%; /* Initial width */
-    background-color: #f0f0f1;
+    width: 25%;
+    background-color: var(--input-background-light);
     display: flex;
     flex-direction: column;
-    transition: background-color 0.3s;
     padding-right: 30px;
     overflow-x: hidden;
+    transition: background-color var(--transition-duration);
+}
+
+.dark-mode #input-section {
+    background-color: var(--input-background-dark);
 }
 
 #toc-section {
-    width: 15%;
-    background-color: #ffffff;
+    width: fit-content;
+    background-color: var(--toc-background-color-light);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     padding: 20px;
     box-sizing: border-box;
-    overflow-y: auto;
-    transition: background-color 0.3s;
+    transition: background-color var(--transition-duration);
+}
+
+.dark-mode #toc-section {
+    background-color: var(--toc-background-color-dark);
 }
 
 #toc {
@@ -87,145 +127,123 @@ body {
     padding: 10px 0;
 }
 
-
-
 #undo:hover {
-    background-color: #98c379;
-    color: #fff;
+    background-color: var(--button-hover-background-color);
+    color: var(--button-text-color);
 }
 
 #undo:focus {
     outline: none;
-    border-color: #56b6c2;
+    border-color: var(--focus-border-color);
 }
 
 #doc-section {
-    width: 60%; /* Initial width */
-    background-color: #ffffff;
-    transition:
-        background-color 0.3s,
-        border-color 0.3s;
+    padding: var(--section-padding);
+    width: 60%;
+    background-color: var(--toc-background-color-light);
+    transition: background-color var(--transition-duration), border-color var(--transition-duration);
 }
 
-/* Divider Styling */
-.divider {
-    width: 5px;
-    cursor: col-resize;
-    background-color: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s;
-}
-
-.divider::before {
-    content: "";
-    display: block;
-    width: 3px;
-    height: 3px;
-    background-color: #ccc;
-    border-radius: 50%;
-    box-shadow:
-        0 0 0 0 #ccc,
-        0 6px 0 0 #ccc,
-        0 12px 0 0 #ccc;
-    transition: background-color 0.3s;
-}
-
-.divider:hover::before {
-    background-color: #aaa;
-}
-
-/* Dark Mode Divider Styling */
-.dark-mode .divider::before {
-    background-color: #555;
-    box-shadow:
-        0 0 0 0 #555,
-        0 6px 0 0 #555,
-        0 12px 0 0 #555;
-}
-
-.dark-mode .divider:hover::before {
-    background-color: #777;
+.dark-mode #doc-section {
+    background-color: var(--toc-background-color-dark);
+    border-color: var(--input-background-dark);
 }
 
 /* Header Input Styling */
 #header-input {
-    width: 100%; /* Corrected width */
-    height: 40px; /* Adjusted height for header input */
+    width: 100%;
+    height: 40px;
     margin-bottom: 10px;
     padding: 8px;
-    font-size: 1.2rem; /* Larger font size for prominence */
-    color: #383a42;
-    background-color: #ffffff;
-    border: 1px solid #dcdcdc;
-    font-family: "Fira Code", monospace;
-    transition:
-        background-color 0.3s,
-        border-color 0.3s;
+    font-size: 1.2rem;
+    border-radius: 5px;
+    color: var(--font-color-light);
+    background-color: var(--input-background-light);
+    border: 1px solid var(--border-color-light);
+    font-family: var(--font-family);
+    transition: background-color var(--transition-duration), border-color var(--transition-duration);
+}
+
+.dark-mode #header-input {
+    background-color: var(--input-background-dark);
+    border-color: var(--border-color-dark);
+    color: var(--font-color-dark);
 }
 
 #header-input:focus {
     outline: none;
-    border-color: #56b6c2;
+    border-color: var(--focus-border-color);
 }
 
 /* Body Input Styling */
 #body-input {
-    width: 100%; /* Corrected width */
-    flex-grow: 1; /* Allow the body input to take up more space */
+    width: 100%;
+    flex-grow: 1;
     resize: none;
     margin-bottom: 30px;
     max-width: 100%;
     min-width: 100%;
     padding: 8px;
-    font-size: 1rem; /* Smaller font size for body text */
-    color: #383a42;
-    background-color: #ffffff;
-    border: 1px solid #dcdcdc;
-    font-family: "Fira Code", monospace;
-    transition:
-        background-color 0.3s,
-        border-color 0.3s;
+    font-size: 1rem;
+    border-radius: 5px;
+    color: var(--font-color-light);
+    background-color: var(--input-background-light);
+    border: 1px solid var(--border-color-light);
+    font-family: var(--font-family);
+    transition: background-color var(--transition-duration), border-color var(--transition-duration);
+}
+
+.dark-mode #body-input {
+    background-color: var(--input-background-dark);
+    border-color: var(--border-color-dark);
+    color: var(--font-color-dark);
 }
 
 #body-input:focus {
     outline: none;
-    border-color: #56b6c2;
+    border-color: var(--focus-border-color);
 }
 
-/* Add Note Button Styling */
+
+/* Button Styling */
 button {
-    width: auto; /* Adjust button width to be smaller */
-    align-self: flex-end; /* Align the button to the right */
+    width: auto;
+    align-self: flex-end;
     padding: 10px 20px;
     font-size: 1rem;
-    color: #ffffff;
-    background-color: #0366d6;
-    border: none;
+    color: var(--button-text-color);
+    background-color: var(--button-background-color);
+    border: 1px solid;
     border-radius: 5px;
     cursor: pointer;
+    transition: background-color var(--transition-duration);
 }
 
+button:hover,
 .dark-mode button:hover {
-    background-color: #98c379;
-    color: #fff;
-}
-
-button:hover {
-    background-color: #98c379;
-    color: #fff;
+    background-color: var(--button-hover-background-color);
+    color: var(--button-text-color);
 }
 
 button:focus {
     outline: none;
-    border-color: #56b6c2;
+    border-color: var(--focus-border-color);
+}
+
+.dark-mode button {
+    background-color: var(--input-background-dark);
+    border-color: var(--border-color-dark);
+    color: var(--font-color-dark);
+}
+
+.dark-mode button:focus {
+    border-color: var(--focus-border-color);
 }
 
 /* Markdown Body Styling */
 .markdown-body {
     padding: 10px;
-    color: #383a42; /* Ensure good readability */
+    color: var(--font-color-light);
 }
 
 .markdown-section {
@@ -235,20 +253,29 @@ button:focus {
     overflow-x: auto;
 }
 
-/* TOC Link Styling (Light Mode) */
+.dark-mode .markdown-body {
+    color: var(--font-color-dark);
+}
+
+/* TOC Link Styling */
 #toc-section a {
-    color: #0366d6; /* A stronger blue for better visibility */
+    color: var(--link-color-light);
     text-decoration: none;
     font-weight: 500;
 }
 
-#toc-section a:hover {
+#toc-section a:hover,
+.dark-mode #toc-section a:hover {
     text-decoration: underline;
 }
 
-/* Link Styling for Main Content (Light Mode) */
+.dark-mode #toc-section a {
+    color: var(--link-color-dark);
+}
+
+/* Link Styling for Main Content */
 .markdown-body a {
-    color: #0366d6; /* A stronger blue for better visibility in light mode */
+    color: var(--link-color-light);
     text-decoration: none;
 }
 
@@ -256,13 +283,17 @@ button:focus {
     text-decoration: underline;
 }
 
-/* Scrollbar Styling (Light Mode) */
+.dark-mode .markdown-body a {
+    color: var(--link-color-dark);
+}
+
+/* Scrollbar Styling */
 body,
 #input-section,
 #toc-section,
 #doc-section {
-    scrollbar-width: thin; /* For Firefox */
-    scrollbar-color: #c0c0c0 #e5e5e6; /* Thumb and Track colors */
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-light) var(--scrollbar-track-light);
 }
 
 body::-webkit-scrollbar,
@@ -276,138 +307,64 @@ body::-webkit-scrollbar-track,
 #input-section::-webkit-scrollbar-track,
 #toc-section::-webkit-scrollbar-track,
 #doc-section::-webkit-scrollbar-track {
-    background: #e5e5e6;
+    background: var(--scrollbar-track-light);
 }
 
 body::-webkit-scrollbar-thumb,
 #input-section::-webkit-scrollbar-thumb,
 #toc-section::-webkit-scrollbar-thumb,
 #doc-section::-webkit-scrollbar-thumb {
-    background-color: #c0c0c0;
+    background-color: var(--scrollbar-thumb-light);
     border-radius: 10px;
-    border: 2px solid #e5e5e6;
+    border: 2px solid var(--scrollbar-track-light);
 }
 
-/* Dark Mode Styling - One Dark Theme */
-.dark-mode {
-    background-color: #282c34;
-    color: #abb2bf;
-}
-
-.dark-mode #input-section {
-    background-color: #3a3f4b;
-}
-
-.dark-mode #toc-section {
-    background-color: #282c34;
-}
-
-.dark-mode #doc-section {
-    background-color: #282c34;
-    border-color: #3a3f4b;
-}
-
-.dark-mode #header-input,
-.dark-mode #body-input,
-.dark-mode button {
-    background-color: #3e4451;
-    border-color: #4b5363;
-    color: #abb2bf;
-    font-family: "Fira Code", monospace;
-}
-
-.dark-mode #header-input:focus,
-.dark-mode #body-input:focus,
-.dark-mode button:focus {
-    border-color: #61afef;
-}
-
-.dark-mode .markdown-body {
-    color: #abb2bf; /* Ensure good readability */
-}
-
-/* TOC Link Styling (Dark Mode) */
-.dark-mode #toc-section a {
-    color: #61afef; /* A brighter blue for better visibility in dark mode */
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.dark-mode #toc-section a:hover {
-    text-decoration: underline;
-}
-
-/* Link Styling for Main Content (Dark Mode) */
-.dark-mode .markdown-body a {
-    color: #61afef; /* A brighter blue that contrasts well with dark backgrounds */
-    text-decoration: none;
-}
-
-.dark-mode .markdown-body a:hover {
-    text-decoration: underline;
-}
-
-/* Scrollbar Styling (Dark Mode) */
 .dark-mode body,
 .dark-mode #input-section,
 .dark-mode #toc-section,
 .dark-mode #doc-section {
-    scrollbar-width: thin;
-    scrollbar-color: #555b6b #3a3f4b;
+    scrollbar-color: var(--scrollbar-thumb-dark) var(--scrollbar-track-dark);
 }
 
-.dark-mode::-webkit-scrollbar,
-.dark-mode #input-section::-webkit-scrollbar,
-.dark-mode #toc-section::-webkit-scrollbar,
-.dark-mode #doc-section::-webkit-scrollbar {
-    width: 12px;
+.dark-mode::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb-dark);
+    border-color: var(--scrollbar-track-dark);
 }
 
-.dark-mode::-webkit-scrollbar-track,
-.dark-mode #input-section::-webkit-scrollbar-track,
-.dark-mode #toc-section::-webkit-scrollbar-track,
-.dark-mode #doc-section::-webkit-scrollbar-track {
-    background: #3a3f4b;
-}
-
-.dark-mode::-webkit-scrollbar-thumb,
-.dark-mode #input-section::-webkit-scrollbar-thumb,
-.dark-mode #toc-section::-webkit-scrollbar-thumb,
-.dark-mode #doc-section::-webkit-scrollbar-thumb {
-    background-color: #555b6b;
-    border-radius: 10px;
-    border: 2px solid #3a3f4b;
-}
-
-/* Highlighting for One Light Theme */
-.highlighted {
-    background-color: #e5c07b; /* A soft yellow that matches the One Light theme */
+/* Highlighting */
+.highlighted:not(#search-input:focus) {
+    background-color: var(--highlight-color-light);
     padding: 2px 1% 2px 1%;
     border-radius: 5px;
 }
 
-/* Highlighting for One Dark Theme */
-.dark-mode .highlighted {
-    background-color: #e5c07b;
-    color: #282c34;
+.dark-mode .highlighted:not(#search-input:focus) {
+    background-color: var(--highlight-color-dark);
+    color: var(--highlight-text-color-dark);
 }
 
-/* Styling for the search input */
+/* Search Input Styling */
 #search-input {
     width: 100%;
     padding: 5px;
     margin-bottom: 10px;
     font-size: 1rem;
-    box-sizing: border-box;
     border-radius: 5px;
+    border: 1px solid var(--border-color-light);
 }
+
 
 .dark-mode #search-input {
-    background-color: #3e4451;
-    color: #abb2bf;
-    border: 1px solid #555b6b;
+    background-color: var(--input-background-dark);
+    color: var(--font-color-dark);
+    border: 1px solid var(--border-color-dark);
 }
 
+.dark-mode #search-input:focus{
+    border-color: var(--focus-border-color);
+}
+
+/* TOC Item Styling */
 .toc-item {
     display: flex;
     justify-content: space-between;
@@ -417,8 +374,12 @@ body::-webkit-scrollbar-thumb,
 
 .toc-item a {
     text-decoration: none;
-    color: #0366d6;
+    color: var(--link-color-light);
     flex-grow: 1;
+}
+
+.dark-mode .toc-item a {
+    color: var(--link-color-dark);
 }
 
 .toc-item .delete-button {
@@ -427,18 +388,18 @@ body::-webkit-scrollbar-thumb,
     cursor: pointer;
     padding: 0;
     margin-left: 10px;
-    color: #e63946;
+    color: #e06c75;
 }
 
 .toc-item .delete-button:hover {
-    color: #d62828;
+    color: #e06c75;
 }
 
 .toc-item .delete-button i {
     font-size: 1rem;
 }
 
-/* Positioning the copy button */
+/* Copy Button Styling */
 .copy-button {
     position: absolute;
     top: 10px;
@@ -454,33 +415,45 @@ body::-webkit-scrollbar-thumb,
 }
 
 .copy-button:hover {
-    background-color: #e0e0e0;
+    background-color: var(--button-hover-background-color);
 }
 
 .dark-mode .copy-button {
-    background-color: #444;
+    background-color: var(--input-background-dark);
     color: #ccc;
 }
 
 .dark-mode .copy-button:hover {
-    background-color: #555;
+    background-color: var(--button-hover-background-color);
 }
 
-/* Ensure the pre element does not interfere with the button */
+/* Pre Element Styling */
 pre {
     position: relative;
     padding: 1em;
-    background: #f5f5f5;
+    background: var(--border-color-light);
     border-radius: 5px;
-    overflow: auto; /* Ensure code blocks can scroll if they overflow */
+    overflow: auto;
 }
 
 .dark-mode pre {
-    background: #333;
+    background-color: var(--input-background-dark);
 }
 
 pre code {
     display: block;
     padding-right: 60px; /* Space for the button */
+    background-color: var(--background-color-dark);
 }
 
+.dark-mode code {
+    background-color: var(--background-color-dark);
+}
+
+h2 {
+    color: var(--font-color-light)
+}
+
+.dark-mode h2 {
+    color: var(--font-color-dark)
+}
