@@ -29,7 +29,7 @@ body {
         color: transparent;
         -webkit-background-clip: text;
         background-clip: text;
-    }
+    }˝˝
 }
 
 .dark-mode #logo {
@@ -48,8 +48,9 @@ body {
 #input-section,
 #toc-section,
 #doc-section {
-    padding: 20px;
+    padding: 25px;
     overflow-y: auto;
+    overflow-x: auto;
     box-sizing: border-box;
 }
 
@@ -86,20 +87,11 @@ body {
     padding: 10px 0;
 }
 
-#undo {
-    padding: 10px 20px;
-    font-size: 1rem;
-    color: #ffffff;
-    background-color: #0366d6;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    width: 100%; /* Make the button fill the container width */
-}
+
 
 #undo:hover {
-    background-color: #0355b3;
+    background-color: #98c379;
+    color: #fff;
 }
 
 #undo:focus {
@@ -182,7 +174,10 @@ body {
 #body-input {
     width: 100%; /* Corrected width */
     flex-grow: 1; /* Allow the body input to take up more space */
-    margin-bottom: 10px;
+    resize: none;
+    margin-bottom: 30px;
+    max-width: 100%;
+    min-width: 100%;
     padding: 8px;
     font-size: 1rem; /* Smaller font size for body text */
     color: #383a42;
@@ -210,11 +205,16 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s;
+}
+
+.dark-mode button:hover {
+    background-color: #98c379;
+    color: #fff;
 }
 
 button:hover {
-    background-color: #0355b3;
+    background-color: #98c379;
+    color: #fff;
 }
 
 button:focus {
@@ -226,6 +226,13 @@ button:focus {
 .markdown-body {
     padding: 10px;
     color: #383a42; /* Ensure good readability */
+}
+
+.markdown-section {
+    margin-top: 1%;
+    padding: 2px 1% 2px 1%;
+    border-radius: 5px;
+    overflow-x: auto;
 }
 
 /* TOC Link Styling (Light Mode) */
@@ -375,12 +382,14 @@ body::-webkit-scrollbar-thumb,
 /* Highlighting for One Light Theme */
 .highlighted {
     background-color: #e5c07b; /* A soft yellow that matches the One Light theme */
+    padding: 2px 1% 2px 1%;
+    border-radius: 5px;
 }
 
 /* Highlighting for One Dark Theme */
 .dark-mode .highlighted {
     background-color: #e5c07b;
-    color: #d19a66;
+    color: #282c34;
 }
 
 /* Styling for the search input */
@@ -391,7 +400,6 @@ body::-webkit-scrollbar-thumb,
     font-size: 1rem;
     box-sizing: border-box;
     border-radius: 5px;
-    border: 1px solid #ccc;
 }
 
 .dark-mode #search-input {
@@ -443,12 +451,9 @@ body::-webkit-scrollbar-thumb,
     color: #333;
     border-radius: 3px;
     z-index: 10;
-    opacity: 0.8;
-    transition: opacity 0.2s ease;
 }
 
 .copy-button:hover {
-    opacity: 1;
     background-color: #e0e0e0;
 }
 
