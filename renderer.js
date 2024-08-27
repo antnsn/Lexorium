@@ -240,38 +240,6 @@ ${bodyValue}
 // Attach event listener to the Undo button
 undoButton.addEventListener("click", undoDelete);
 
-// Column Resizing Logic
-const dividers = document.querySelectorAll(".divider");
-let isResizing = false;
-let lastDownX = 0;
-
-dividers.forEach((divider) => {
-  divider.addEventListener("mousedown", (e) => {
-    isResizing = true;
-    lastDownX = e.clientX;
-
-    const previous = divider.previousElementSibling;
-    const next = divider.nextElementSibling;
-
-    document.addEventListener("mousemove", (e) => {
-      if (!isResizing) return;
-
-      const offsetRight =
-        container.clientWidth - (e.clientX - container.offsetLeft);
-      const previousWidth =
-        ((e.clientX - container.offsetLeft) / container.clientWidth) * 100;
-      const nextWidth = (offsetRight / container.clientWidth) * 100;
-
-      previous.style.width = previousWidth + "%";
-      next.style.width = nextWidth + "%";
-    });
-
-    document.addEventListener("mouseup", () => {
-      isResizing = false;
-    });
-  });
-});
-
 document.getElementById("search-input").addEventListener("input", (event) => {
   const searchTerm = event.target.value.toLowerCase();
 
