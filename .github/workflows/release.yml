@@ -19,7 +19,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: macos-latest
         platform: [win32, darwin, linux]
     steps:
       - name: Checkout code
@@ -33,22 +33,22 @@ jobs:
       - name: Cache node_modules
         uses: actions/cache@v3
         with:
-          path: ./app/node_modules
+          path: app/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('app/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./app
+        working-directory: app
 
       - name: Build
         run: npx electron-forge make --arch=x64 --platform=${{ matrix.platform }}
-        working-directory: ./app
+        working-directory: app
 
       - name: Publish to GitHub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx electron-forge publish --arch=x64 --platform=${{ matrix.platform }}
-        working-directory: ./app
+        working-directory: app
