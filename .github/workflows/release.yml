@@ -6,15 +6,13 @@ on:
     branches:
       - main
     paths:
-      - 'app'
+      - 'app/'
 
   pull_request:
     branches:
       - main
     paths:
       - 'app/'
-
-
 
 jobs:
   build:
@@ -26,7 +24,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        working-directory: ./app
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -41,15 +38,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-
       - name: Install dependencies
         run: npm install
+        working-directory: ./app
 
       - name: Build
         run: npx electron-forge make --arch=x64 --platform=${{ matrix.platform }}
+        working-directory: ./app
 
       - name: Publish to GitHub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx electron-forge publish --arch=x64 --platform=${{ matrix.platform }}
+        working-directory: ./app
