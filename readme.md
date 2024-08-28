@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img width="30%" src="assets/icon.png">
+  <img width="30%" src="app/assets/icon.png">
 </p>
 
 # Lexorium
