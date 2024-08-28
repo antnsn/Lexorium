@@ -1,28 +1,20 @@
 name: Build and Release
 
 on:
+  workload_dispatch:
   push:
     branches:
       - main
     paths:
-      - '**/*.js'
-      - '**/*.json'
-      - '**/*.html'
-      - '**/*.css'
-      - '**/*.md'
-      - 'assets/**'
-      - '!README.md'
+      - 'app'
+
   pull_request:
     branches:
       - main
     paths:
-      - '**/*.js'
-      - '**/*.json'
-      - '**/*.html'
-      - '**/*.css'
-      - '**/*.md'
-      - 'assets/**'
-      - '!README.md'
+      - 'app/'
+
+
 
 jobs:
   build:
@@ -44,10 +36,11 @@ jobs:
       - name: Cache node_modules
         uses: actions/cache@v3
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          path: ./app/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('app/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
 
       - name: Install dependencies
         run: npm install
