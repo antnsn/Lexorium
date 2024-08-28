@@ -196,10 +196,10 @@ ipcRenderer.on("update-dark-mode", (event, isDarkMode) => {
   const highlightStyle = document.getElementById("highlight-style");
   if (isDarkMode) {
     highlightStyle.href =
-      "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark.min.css";
+      "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css";
   } else {
     highlightStyle.href =
-      "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github.min.css";
+      "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-light.min.css";
   }
 });
 
