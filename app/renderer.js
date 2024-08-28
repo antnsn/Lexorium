@@ -312,3 +312,32 @@ document.addEventListener("keydown", (event) => {
     undoDelete();
   }
 });
+
+const { app, Menu, dialog, shell } = require('electron');
+
+const menuTemplate = [
+  {
+    label: 'Help',
+    submenu: [
+      {
+        label: 'About',
+        click: () => {
+          dialog.showMessageBox({
+            type: 'info',
+            title: 'About Lexorium',
+            message: `Lexorium\nVersion: ${app.getVersion()}\n\nVisit our GitHub page:`,
+            buttons: ['Open GitHub', 'Close'],
+            defaultId: 0,
+          }).then(result => {
+            if (result.response === 0) {
+              shell.openExternal('https://github.com/antnsn/Lexorium');
+            }
+          });
+        }
+      },
+    ]
+  }
+];
+
+const menu = Menu.buildFromTemplate(menuTemplate);
+Menu.setApplicationMenu(menu);

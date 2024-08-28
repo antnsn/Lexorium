@@ -221,11 +221,22 @@ function createWindow() {
       role: "help",
       submenu: [
         {
-          label: "Learn More",
-          click: async () => {
-            const { shell } = require("electron");
-            await shell.openExternal("https://electronjs.org");
-          },
+          label: 'About',
+          click: () => {
+            dialog.showMessageBox({
+              type: 'none',  // No sound or icon
+              title: 'About Lexorium',
+              message: `Lexorium \n\nVersion: ${app.getVersion()}\n\nVisit our GitHub page:`,
+              buttons: ['Open GitHub', 'Close'],
+              defaultId: 0,
+              icon: 'assets/icon.png',  // Optional: Path to an app icon
+            }).then(result => {
+              if (result.response === 0) {
+                const { shell } = require("electron");
+                shell.openExternal("https://github.com/antnsn/lexorium");
+              }
+            });
+          }
         },
       ],
     },
