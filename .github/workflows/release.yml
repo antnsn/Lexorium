@@ -16,10 +16,12 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
     strategy:
       matrix:
-        platform: [win32, darwin, linux]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        platform: [linux, darwin, win32]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
