@@ -285,7 +285,7 @@ button:focus {
     color: var(--link-color-dark);
 }
 
-/* Link Styling for Main Content  */
+/* Link Styling for Main Content */
 .markdown-body a {
     color: var(--link-color-light);
     text-decoration: none;
