@@ -32,6 +32,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        working-directory: ./app
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -56,6 +57,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        working-directory: ./app
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -80,6 +82,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        working-directory: ./app
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -104,6 +107,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        working-directory: ./app
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -122,6 +126,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        working-directory: ./app
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
@@ -140,6 +145,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        working-directory: ./app
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
