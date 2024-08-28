@@ -16,10 +16,9 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-latest
     strategy:
       matrix:
-        os: macos-latest
         platform: [win32, darwin, linux]
     steps:
       - name: Checkout code
