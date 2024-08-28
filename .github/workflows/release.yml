@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
@@ -15,10 +16,16 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux
+            arch: x64
           - os: macos-latest
             platform: darwin
+            arch: x64
+          - os: macos-latest
+            platform: darwin
+            arch: arm64   # Apple Silicon
           - os: windows-latest
             platform: win32
+            arch: x64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -42,12 +49,12 @@ jobs:
         working-directory: app
 
       - name: Build
-        run: npx electron-forge make --arch=x64 --platform=${{ matrix.platform }}
+        run: npx electron-forge make --arch=${{ matrix.arch }} --platform=${{ matrix.platform }}
         working-directory: app
 
       - name: Publish to GitHub
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-forge publish --arch=x64 --platform=${{ matrix.platform }}
+        run: npx electron-forge publish --arch=${{ matrix.arch }} --platform=${{ matrix.platform }}
         working-directory: app
