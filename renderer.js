@@ -139,15 +139,25 @@ const undoDelete = () => {
 
 const copyCodeToClipboard = (block) => {
   const codeText = block.innerText;
-  navigator.clipboard
-    .writeText(codeText)
+  navigator.clipboard.writeText(codeText)
     .then(() => {
       console.log("Code copied to clipboard");
+
+      // Provide feedback to the user
+      const button = block.parentNode.querySelector(".copy-button");
+      if (button) {
+        const originalText = button.innerText;
+        button.innerText = "Copied!";
+        setTimeout(() => {
+          button.innerText = originalText;
+        }, 2000); // Revert back after 2 seconds
+      }
     })
     .catch((err) => {
       console.error("Error copying code to clipboard", err);
     });
 };
+
 
 const saveToFile = () => {
   if (currentFilePath) {

@@ -2,7 +2,7 @@
     --font-family: "Fira Code", monospace;
     --font-color-light: #383a42;
     --font-color-dark: #abb2bf;
-    --background-color-light: #fafafa;
+    --background-color-light: #FAFAFA;
     --background-color-dark: #282c34;
     --input-background-light: #ffffff;
     --input-background-dark: #3e4451;
@@ -12,9 +12,10 @@
     --highlight-color-light: #e5c07b;
     --highlight-color-dark: #e5c07b;
     --highlight-text-color-dark: #282c34;
-    --link-color-light: #4e91c8;
+    --red-color: #e06c75;
+    --link-color-light: #4e75c8;
     --link-color-dark: #61afef;
-    --button-background-color: #282c34;
+    --button-background-color: #3e4451;
     --button-hover-background-color: #98c379;
     --button-text-color: #ffffff;
     --divider-color-light: #ccc;
@@ -27,13 +28,16 @@
     --toc-background-color-dark: #282c34;
     --section-padding: 25px;
     --transition-duration: 0.3s;
+    --border-radius: 5px;
 }
+
 
 body {
     display: flex;
     margin: 0;
     padding: 0;
     font-family: var(--font-family);
+    font-size: 1rem;
     background-color: var(--background-color-light);
     color: var(--font-color-light);
     height: 100vh;
@@ -46,6 +50,17 @@ body {
     color: var(--font-color-dark);
 }
 
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--font-color-light)
+}
+
+.dark-mode h2 {
+    color: var(--font-color-dark)
+}
+
 #container {
     display: flex;
     width: 100%;
@@ -53,7 +68,8 @@ body {
 }
 
 #logo {
-    font-size: 2vw;
+    font-size: 3rem;
+    font-weight: bold;
     text-transform: uppercase;
     @supports (background-clip: text) or (-webkit-background-clip: text) {
         background-image: url("data:image/svg+xml,%3Csvg width='2250' height='900' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg%3E%3Cpath fill='%2361afef' d='M0 0h2255v899H0z'/%3E%3Ccircle cx='366' cy='207' r='366' fill='%23c678dd'/%3E%3Ccircle cx='1777.5' cy='318.5' r='477.5' fill='%23c678dd'/%3E%3Ccircle cx='1215' cy='737' r='366' fill='%2361afef'/%3E%3C/g%3E%3C/svg%3E%0A");
@@ -81,15 +97,21 @@ body {
 #input-section,
 #toc-section,
 #doc-section {
+    background-color: --background-color-light;
     padding: var(--section-padding);
-    overflow-y: auto;
-    overflow-x: auto;
     box-sizing: border-box;
 }
 
 #input-section {
+    max-width: 25%;;
+}
+
+#doc-section {
+    overflow-y: auto;
+}
+
+#input-section {
     width: 25%;
-    background-color: var(--input-background-light);
     display: flex;
     flex-direction: column;
     padding-right: 30px;
@@ -102,8 +124,8 @@ body {
 }
 
 #toc-section {
+    min-width: 15%;
     width: fit-content;
-    background-color: var(--toc-background-color-light);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -140,7 +162,6 @@ body {
 #doc-section {
     padding: var(--section-padding);
     width: 60%;
-    background-color: var(--toc-background-color-light);
     transition: background-color var(--transition-duration), border-color var(--transition-duration);
 }
 
@@ -156,7 +177,7 @@ body {
     margin-bottom: 10px;
     padding: 8px;
     font-size: 1.2rem;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     color: var(--font-color-light);
     background-color: var(--input-background-light);
     border: 1px solid var(--border-color-light);
@@ -170,10 +191,6 @@ body {
     color: var(--font-color-dark);
 }
 
-#header-input:focus {
-    outline: none;
-    border-color: var(--focus-border-color);
-}
 
 /* Body Input Styling */
 #body-input {
@@ -185,7 +202,7 @@ body {
     min-width: 100%;
     padding: 8px;
     font-size: 1rem;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     color: var(--font-color-light);
     background-color: var(--input-background-light);
     border: 1px solid var(--border-color-light);
@@ -199,11 +216,6 @@ body {
     color: var(--font-color-dark);
 }
 
-#body-input:focus {
-    outline: none;
-    border-color: var(--focus-border-color);
-}
-
 
 /* Button Styling */
 button {
@@ -214,7 +226,7 @@ button {
     color: var(--button-text-color);
     background-color: var(--button-background-color);
     border: 1px solid;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: background-color var(--transition-duration);
 }
@@ -249,7 +261,7 @@ button:focus {
 .markdown-section {
     margin-top: 1%;
     padding: 2px 1% 2px 1%;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     overflow-x: auto;
 }
 
@@ -291,65 +303,97 @@ button:focus {
 body,
 #input-section,
 #toc-section,
-#doc-section {
+#doc-section,
+#doc-section .markdown-section {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb-light) var(--scrollbar-track-light);
 }
 
+/* General scrollbar styles for all sections */
+body,
+#input-section,
+#toc-section,
+#doc-section,
+#doc-section .markdown-body {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-light) var(--scrollbar-track-light);
+}
+
+/* Light mode styles */
 body::-webkit-scrollbar,
 #input-section::-webkit-scrollbar,
 #toc-section::-webkit-scrollbar,
-#doc-section::-webkit-scrollbar {
+#doc-section::-webkit-scrollbar,
+#doc-section .markdown-body::-webkit-scrollbar {
     width: 12px;
 }
 
 body::-webkit-scrollbar-track,
 #input-section::-webkit-scrollbar-track,
 #toc-section::-webkit-scrollbar-track,
-#doc-section::-webkit-scrollbar-track {
+#doc-section::-webkit-scrollbar-track,
+#doc-section .markdown-body::-webkit-scrollbar-track {
     background: var(--scrollbar-track-light);
 }
 
 body::-webkit-scrollbar-thumb,
 #input-section::-webkit-scrollbar-thumb,
 #toc-section::-webkit-scrollbar-thumb,
-#doc-section::-webkit-scrollbar-thumb {
+#doc-section::-webkit-scrollbar-thumb,
+#doc-section .markdown-body::-webkit-scrollbar-thumb {
     background-color: var(--scrollbar-thumb-light);
     border-radius: 10px;
     border: 2px solid var(--scrollbar-track-light);
 }
 
-.dark-mode body,
-.dark-mode #input-section,
-.dark-mode #toc-section,
-.dark-mode #doc-section {
-    scrollbar-color: var(--scrollbar-thumb-dark) var(--scrollbar-track-dark);
+/* Dark mode styles */
+.dark-mode body::-webkit-scrollbar,
+.dark-mode #input-section::-webkit-scrollbar,
+.dark-mode #toc-section::-webkit-scrollbar,
+.dark-mode #doc-section::-webkit-scrollbar,
+.dark-mode #doc-section .markdown-body::-webkit-scrollbar {
+    width: 12px;
 }
 
-.dark-mode::-webkit-scrollbar-thumb {
-    background-color: var(--scrollbar-thumb-dark);
-    border-color: var(--scrollbar-track-dark);
+.dark-mode body::-webkit-scrollbar-track,
+.dark-mode #input-section::-webkit-scrollbar-track,
+.dark-mode #toc-section::-webkit-scrollbar-track,
+.dark-mode #doc-section::-webkit-scrollbar-track,
+.dark-mode #doc-section .markdown-body::-webkit-scrollbar-track {
+    background: var(--scrollbar-track-dark);
 }
+
+.dark-mode body::-webkit-scrollbar-thumb,
+.dark-mode #input-section::-webkit-scrollbar-thumb,
+.dark-mode #toc-section::-webkit-scrollbar-thumb,
+.dark-mode #doc-section::-webkit-scrollbar-thumb,
+.dark-mode #doc-section .markdown-body::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb-dark);
+    border-radius: 10px;
+    border: 2px solid var(--scrollbar-track-dark);
+}
+
 
 /* Highlighting */
-.highlighted:not(#search-input:focus) {
+.highlighted {
     background-color: var(--highlight-color-light);
+    color: var(--highlight-text-color-dark);
     padding: 2px 1% 2px 1%;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
 }
 
-.dark-mode .highlighted:not(#search-input:focus) {
-    background-color: var(--highlight-color-dark);
-    color: var(--highlight-text-color-dark);
+.dark-mode .highlighted h2{
+    color: var(--background-color-dark);
 }
+
 
 /* Search Input Styling */
 #search-input {
-    width: 100%;
+    width: 98%;
     padding: 5px;
     margin-bottom: 10px;
     font-size: 1rem;
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     border: 1px solid var(--border-color-light);
 }
 
@@ -360,9 +404,6 @@ body::-webkit-scrollbar-thumb,
     border: 1px solid var(--border-color-dark);
 }
 
-.dark-mode #search-input:focus{
-    border-color: var(--focus-border-color);
-}
 
 /* TOC Item Styling */
 .toc-item {
@@ -385,14 +426,18 @@ body::-webkit-scrollbar-thumb,
 .toc-item .delete-button {
     background-color: transparent;
     border: none;
-    cursor: pointer;
-    padding: 0;
+    padding: 2;
     margin-left: 10px;
-    color: #e06c75;
+    color: var(--red-color);
+}
+
+.dark-mode .toc-item .delete-button {
+
 }
 
 .toc-item .delete-button:hover {
-    color: #e06c75;
+    color: var(--background-color-dark);
+    background-color: var(--red-color);
 }
 
 .toc-item .delete-button i {
@@ -432,7 +477,7 @@ pre {
     position: relative;
     padding: 1em;
     background: var(--border-color-light);
-    border-radius: 5px;
+    border-radius: var(--border-radius);
     overflow: auto;
 }
 
@@ -450,10 +495,3 @@ pre code {
     background-color: var(--background-color-dark);
 }
 
-h2 {
-    color: var(--font-color-light)
-}
-
-.dark-mode h2 {
-    color: var(--font-color-dark)
-}
