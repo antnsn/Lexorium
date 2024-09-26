@@ -1,11 +1,13 @@
-const { ipcRenderer } = require("electron");
-
 let markdownContent = "";
 let currentFilePath = "";
-let undoStack = []; // Stack to keep track of deleted sections for undo
+let undoStack = []; 
 
 // Function Definitions
 const updateDocumentView = () => {
+  if (typeof markdownContent !== "string" || markdownContent.trim() === "") {
+    // console.error("markdownContent is not properly initialized or is empty");
+    return; // Prevent rendering if the content is invalid
+  }
   try {
     const markdownRenderFunction = marked.marked || marked.parse || marked;
     if (typeof markdownRenderFunction !== "function") {
@@ -32,7 +34,7 @@ const updateDocumentView = () => {
     // Add copy buttons to code blocks
     document.querySelectorAll("pre code").forEach((block) => {
       const pre = block.parentNode;
-      pre.style.position = "relative"; // Ensure pre is positioned for absolute button positioning
+      pre.style.position = "relative"; 
 
       const button = document.createElement("button");
       button.innerText = "Copy";
@@ -41,7 +43,7 @@ const updateDocumentView = () => {
         copyCodeToClipboard(block);
       });
 
-      pre.appendChild(button); // Append the button to the pre element
+      pre.appendChild(button); 
 
       // Apply syntax highlighting with automatic language detection
       hljs.highlightElement(block);
@@ -139,7 +141,8 @@ const undoDelete = () => {
 
 const copyCodeToClipboard = (block) => {
   const codeText = block.innerText;
-  navigator.clipboard.writeText(codeText)
+  navigator.clipboard
+    .writeText(codeText)
     .then(() => {
       console.log("Code copied to clipboard");
 
@@ -158,40 +161,54 @@ const copyCodeToClipboard = (block) => {
     });
 };
 
-
-const saveToFile = () => {
+const saveToFile = async () => {
   if (currentFilePath) {
-    ipcRenderer.invoke("file:save", {
-      filePath: currentFilePath,
-      content: markdownContent,
-    });
+    try {
+      await window.electronAPI.saveFile(currentFilePath, markdownContent);
+      alert("File saved successfully!");
+    } catch (error) {
+      alert("Error saving file: " + error.message);
+    }
   } else {
     alert("No file is currently open.");
   }
 };
 
+
 // Event Listeners and IPC Handlers
 
-ipcRenderer.on("file-new", () => {
+// Listen for file events from the main process
+window.electronAPI.on("file-new", () => {
   const newFileContent = ""; // New file starts with empty content
   markdownContent = newFileContent;
   updateDocumentView();
   updateTOC();
 });
 
-ipcRenderer.on("file-opened", (event, { filePath, content }) => {
+window.electronAPI.on("file-opened", (data) => {
+  const { filePath, content } = data;
+
+  if (content === undefined) {
+    console.error("Invalid content received: undefined");
+    alert("Failed to open the file or the content is empty.");
+    return; // Exit if content is invalid
+  }
+
+  // Update the markdown content and view
   currentFilePath = filePath;
-  markdownContent = content;
+  markdownContent = content.trim(); // Set the markdown content
+
+  // Call the update functions after content is set
   updateDocumentView();
   updateTOC();
 });
 
-ipcRenderer.on("file-save-request", () => {
+window.electronAPI.on("file-save-request", () => {
   saveToFile();
 });
 
 // Listen for dark mode updates from the main process
-ipcRenderer.on("update-dark-mode", (event, isDarkMode) => {
+window.electronAPI.on("update-dark-mode", (isDarkMode) => {
   document.body.classList.toggle("dark-mode", isDarkMode);
   const highlightStyle = document.getElementById("highlight-style");
   if (isDarkMode) {
@@ -204,34 +221,72 @@ ipcRenderer.on("update-dark-mode", (event, isDarkMode) => {
 });
 
 const addNoteButton = document.getElementById("add-note");
-const undoButton = document.getElementById("undo"); // Add this line to get the Undo button
+const undoButton = document.getElementById("undo");
 const tocSection = document.getElementById("toc");
 const documentView = document.getElementById("document-view");
 
 const getCurrentTimeStamp = () => {
   const now = new Date();
-  return `${now.getDate()}.${now.getMonth() + 1}.${now.getFullYear()} - ${now.getHours()}:${now.getMinutes()}`;
+  return `${now.getDate()}.${
+    now.getMonth() + 1
+  }.${now.getFullYear()} - ${now.getHours()}:${now.getMinutes()}`;
 };
 
-addNoteButton.addEventListener("click", () => {
+addNoteButton.addEventListener("click", async () => {
   const headerInput = document.getElementById("header-input");
   const bodyInput = document.getElementById("body-input");
 
   const headerValue = headerInput.value || getCurrentTimeStamp();
-  const bodyValue = bodyInput.value.trim(); // Trim whitespace from the body input
+  const bodyValue = bodyInput.value.trim();
 
-  // Check if the body is empty
   if (bodyValue === "") {
     alert("Note body cannot be empty. Please enter some content.");
-    return; // Stop the submission if the body is empty
+    return;
   }
 
-  // Add markers for the start and end of the section
+  const enableChatGPT = document.getElementById("enable-chatgpt").checked;
+  let finalBodyValue = bodyValue;
+
+  if (enableChatGPT) {
+    // Load API key from the config
+    let apiKey = await window.electronAPI.loadApiKey();
+
+    // Check if API key is set
+    if (!apiKey) {
+      // Prompt for API key using the contextBridge exposed method
+      const apiKeyFromPrompt = await window.electronAPI.promptForApiKey();
+
+      // If the user cancels or doesn't provide an API key
+      if (!apiKeyFromPrompt) {
+        alert(
+          "API key is required to use ChatGPT. Please set it in the ChatGPT menu."
+        );
+        return;
+      }
+
+      // Save and initialize OpenAI with the provided API key
+      await window.electronAPI.initializeOpenAI(apiKeyFromPrompt);
+      apiKey = apiKeyFromPrompt; // Update the local apiKey variable
+    } else {
+      // Initialize OpenAI with the existing API key
+      await window.electronAPI.initializeOpenAI(apiKey);
+    }
+
+    try {
+      finalBodyValue = await window.electronAPI.sendToChatGPT(bodyValue); 
+      console.log("ChatGPT Response:", finalBodyValue);
+    } catch (error) {
+      console.error("Error communicating with ChatGPT:", error);
+      alert("Failed to get a response from ChatGPT.");
+      return;
+    }
+  }
+
   const newNote = `
 <!-- start-section-${headerValue.replace(/\s/g, "-")} -->
 ## ${headerValue}
 
-${bodyValue}
+${finalBodyValue}
 <!-- end-section-${headerValue.replace(/\s/g, "-")} -->
 
 `;
@@ -242,7 +297,6 @@ ${bodyValue}
   updateTOC();
   saveToFile();
 
-  // Clear input fields after submission
   headerInput.value = "";
   bodyInput.value = "";
 });
@@ -254,8 +308,7 @@ document.getElementById("search-input").addEventListener("input", (event) => {
   const searchTerm = event.target.value.toLowerCase();
 
   // Clear any previous highlights
-  document.querySelectorAll
-  (".highlighted").forEach((el) => {
+  document.querySelectorAll(".highlighted").forEach((el) => {
     el.classList.remove("highlighted");
   });
 
@@ -275,40 +328,20 @@ document.getElementById("search-input").addEventListener("input", (event) => {
         .querySelector(`#${sectionId}`)
         .innerText.toLowerCase();
 
-      if (
-        headerText.toLowerCase().includes(searchTerm) ||
-        sectionContent.includes(searchTerm)
-      ) {
-        // Highlight matching section
-        document.querySelector(`#${sectionId}`).classList.add("highlighted");
-
-        // Return TOC entry
-        return `
-          <div class="toc-item">
-            <a href="#${sectionId}">${headerText}</a>
-            <button class="delete-button" data-index="${index}">
-              <i class="fas fa-trash-alt"></i>
-            </button>
-          </div>`;
-      } else {
-        return ""; // Exclude non-matching entries
+      // Highlight matching sections
+      if (sectionContent.includes(searchTerm)) {
+        const highlightedContent = sectionContent.replace(
+          new RegExp(searchTerm, "g"),
+          (match) => `<span class="highlighted">${match}</span>`
+        );
+        document.querySelector(`#${sectionId}`).innerHTML = highlightedContent;
+        return `<div class="toc-item"><a href="#${sectionId}">${headerText}</a></div>`;
       }
+      return ""; // Exclude non-matching headers
     })
     .join("");
-
-  // Re-attach delete button event listeners
-  document.querySelectorAll(".delete-button").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      const index = event.target.closest("button").getAttribute("data-index");
-      deleteSection(index);
-    });
-  });
 });
 
-// Undo with Ctrl+Z or Cmd+Z
-document.addEventListener("keydown", (event) => {
-  if ((event.ctrlKey || event.metaKey) && event.key === "z") {
-    event.preventDefault();
-    undoDelete();
-  }
-});
+// Initialize with an empty document view
+updateDocumentView();
+updateTOC();
