@@ -1,69 +1,73 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Lexorium</title>
-        <link rel="stylesheet" href="styles.css" />
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-        />
-        <link
-            id="highlight-style"
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css"
-        />
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
-    </head>
-    <body>
-        <div id="container">
-            <!-- TOC Section -->
-            <div id="toc-section">
-                <h1 id="logo">Lexorium</h1>
-                <h2>Table of Contents</h2>
-                <input type="text" id="search-input" placeholder="Search..." />
-                <div id="toc"></div>
-                <div id="undo-container">
-                  <button type="button" id="undo">Restore</button>
-                </div>
-              </div>
-
-            <!-- Divider between TOC and Document sections -->
-            <div class="divider"></div>
-
-            <!-- Document Section -->
-            <div id="doc-section">
-                <div id="document-view" class="markdown-body"></div>
-            </div>
-
-            <!-- Divider between Document and New Note sections -->
-            <div class="divider"></div>
-
-            <!-- New Note Section -->
-            <div id="input-section">
-                <h2>New Note</h2>
-                <input
-                    type="text"
-                    id="header-input"
-                    placeholder="Header (optional)"
-                />
-                <textarea id="body-input" placeholder="Body"></textarea>
-                <button id="add-note">Add Note</button>
-            </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: http://www.w3.org/2000/svg;"> -->
+    <title>Lexorium</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link
+      id="highlight-style"
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="container">
+      <!-- TOC Section -->
+      <div id="toc-section">
+        <h1 id="logo">Lexorium</h1>
+        <h2>Table of Contents</h2>
+        <input type="text" id="search-input" placeholder="Search..." />
+        <div id="toc"></div>
+        <div id="undo-container">
+          <button type="button" id="undo">Restore</button>
         </div>
+      </div>
 
-        <!-- Include the marked.js library -->
-        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-        <!-- Include highlight.js -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-        <script>
-            console.log("marked.js is loaded:", typeof marked !== "undefined");
-            console.log("highlight.js is loaded:", typeof hljs !== "undefined");
-        </script>
-        <!-- Include the custom renderer script -->
-        <script src="renderer.js"></script>
-    </body>
+      <!-- Divider between TOC and Document sections -->
+      <div class="divider"></div>
+
+      <!-- Document Section -->
+      <div id="doc-section">
+        <div id="document-view" class="markdown-body"></div>
+      </div>
+
+      <!-- Divider between Document and New Note sections -->
+      <div class="divider"></div>
+
+      <!-- New Note Section -->
+      <div id="input-section">
+        <h2>New Note</h2>
+        <input type="text" id="header-input" placeholder="Header (optional)" />
+        <textarea id="body-input" placeholder="Body"></textarea>
+        <label class="checkbox">
+          <input type="checkbox" id="enable-chatgpt" />
+          Use ChatGPT
+        </label>
+        <button id="add-note">Add Note</button>
+      </div>
+    </div>
+
+    <!-- Include the marked.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Include highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>
+      console.log("marked.js is loaded:", typeof marked !== "undefined");
+      console.log("highlight.js is loaded:", typeof hljs !== "undefined");
+    </script>
+    <!-- Include the custom renderer script -->
+    <script src="renderer.js"></script>
+  </body>
 </html>
