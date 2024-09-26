@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>API Key Input</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        body.apiBox { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .apiBox { width: 400px; height: fit-content; text-align: center; padding: 2rem}
+        input { width: 90%; padding: 0.5rem; }
+        button { margin: 1rem; }
+    </style>
+</head>
+<body id="apibox">
+    <div class="apiBox">
+        <h2>Enter ChatGPT API Key</h2>
+        <input type="text" id="apiKey" placeholder="Your API Key" />
+        <button id="submitBtn">Submit</button>
+    </div>
+    <script>
+        const { ipcRenderer } = require('electron');
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            const apiKey = document.getElementById('apiKey').value;
+            ipcRenderer.send('save-api-key', apiKey); // Send the API key back to main process
+            window.close(); // Close the dialog
+        });
+    </script>
+</body>
+</html>
