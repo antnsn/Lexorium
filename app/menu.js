@@ -113,7 +113,7 @@ function createMenu(mainWindow) {
                                 mainWindow,
                                 {
                                     properties: ["openFile"],
-                                    filters: [{ name: "Markdown Files", extensions: ["md"] }],
+                                    filters: [{ name: "json Files", extensions: ["json"] }],
                                 }
                             );
                             if (!canceled && filePaths.length > 0) {
