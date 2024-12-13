@@ -251,6 +251,20 @@ textarea:focus {
     border-color: var(--accent-color);
 }
 
+.dark-mode .section-header{
+    background-color: var(--border-color-dark);
+    padding-left: 15px;
+    padding-right: 15px;
+    border-radius: var(--border-radius);
+}
+
+.section-header{
+    background-color: var(--border-color-light);
+    padding-left: 15px;
+    padding-right: 15px;
+    border-radius: var(--border-radius);
+}
+
 #body-input {
     border: 1px solid var(--border-color-light);
     margin-top: 10px;
@@ -374,24 +388,26 @@ textarea:focus {
 }
 
 .markdown-section {
+    background-color: var(--scrollbar-track-light);
     margin-top: 1%;
-    padding: 2px 1% 2px 1%;
+    padding: calc(var(--section-padding) + 20px) var(--section-padding) var(--section-padding);
     border-radius: var(--border-radius);
     overflow-x: auto;
 }
 
+.dark-mode .markdown-section {
+    background-color: var(--scrollbar-track-dark);
+}
+
 .markdown-section.editing {
     border: 2px solid var(--accent-color);
-    background-color: var(--background-color-light);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     position: relative;
     padding: calc(var(--section-padding) + 20px) var(--section-padding) var(--section-padding);
     margin: 20px 0;
 }
 
-.dark-mode .markdown-section.editing {
-    background-color: var(--background-color-dark);
-}
+
 
 .markdown-section.editing::before {
     content: "Editing";
