@@ -693,3 +693,8 @@ function saveToFile() {
         alert("No file is currently open.");
     }
 }
+
+// Add event listener for undo button
+undoButton.addEventListener("click", () => {
+    undoDelete();
+});
