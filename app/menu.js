@@ -166,6 +166,21 @@ function createMenu(mainWindow) {
                     click: () => {
                         mainWindow.webContents.send('show-settings');
                     }
+                },
+                {
+                    label: "Open Config File",
+                    click: () => {
+                        const configPath = path.join(app.getPath('userData'), 'config.json');
+                        if (fs.existsSync(configPath)) {
+                            const content = fs.readFileSync(configPath, 'utf-8');
+                            mainWindow.webContents.send('file-opened', {
+                                filePath: configPath,
+                                content
+                            });
+                        } else {
+                            dialog.showErrorBox('Error', 'Config file not found');
+                        }
+                    }
                 }
             ],
         },
