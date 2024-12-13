@@ -9,6 +9,11 @@
 
 Proudly built with the assistance of ChatGPT, **Lexorium** is a testament to what can be achieved with knowledge, dedication, and AI-powered help. While it may not be perfect, contributions are greatly appreciated to help make it better.
 
+<p align="center">
+  <img width="80%" src="./screenshot.png">
+</p>
+
+
 ## Features
 
 - **Three-Column Interface**:
