@@ -81,12 +81,30 @@
             </div>
         </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
         <script>
             console.log("marked.js is loaded:", typeof marked !== "undefined");
             console.log("highlight.js is loaded:", typeof hljs !== "undefined");
         </script>
         <script src="renderer.js"></script>
+        <script>
+            // Handle all link clicks to open in external browser
+            document.addEventListener('click', async (event) => {
+                const link = event.target.closest('a');
+                if (link && link.classList.contains('external-link')) {
+                    event.preventDefault();
+                    const href = link.getAttribute('href');
+                    if (href && href.startsWith('http')) {
+                        try {
+                            await window.electronAPI.openExternalLink(href);
+                        } catch (error) {
+                            console.error('Failed to open external link:', error);
+                        }
+                    }
+                }
+                // Let internal links (like #section-1) work normally
+            });
+        </script>
     </body>
 </html>

@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer, shell } = require('electron');
 
+// Expose APIs to renderer process
 contextBridge.exposeInMainWorld('electronAPI', {
     // File operations
     onFileNew: (callback) => ipcRenderer.on('file-new', callback),
@@ -18,5 +19,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Remove event listeners when needed
     removeListener: (channel, callback) => ipcRenderer.removeListener(channel, callback),
     
-    openExternal: (url) => shell.openExternal(url)
+    // External link handling
+    openExternalLink: (url) => ipcRenderer.invoke('open-external-url', url)
 });

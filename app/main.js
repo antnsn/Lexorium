@@ -4,6 +4,7 @@ const {
   ipcMain,
   nativeTheme,
   Menu,
+  shell
 } = require("electron");
 const path = require("path");
 const fs = require("fs");
@@ -26,6 +27,23 @@ function createWindow() {
       contextIsolation: true,
       preload: path.join(__dirname, "preload.js")
     },
+  });
+
+  // Prevent new windows from opening within Electron
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // Open all http(s) links in default browser
+    if (url.startsWith('http')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+
+  // Handle navigation attempts within the window
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url.startsWith('http')) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
   });
 
   mainWindow.loadFile("index.html");
@@ -74,6 +92,16 @@ ipcMain.handle("file:save", async (event, { filePath, content }) => {
   } catch (error) {
     DEBUG.error("Error saving file:", error);
     return false;
+  }
+});
+
+ipcMain.handle('open-external-url', async (event, url) => {
+  try {
+    await shell.openExternal(url);
+    return true;
+  } catch (error) {
+    console.error('Error opening external URL:', error);
+    throw error;
   }
 });
 

@@ -19,6 +19,22 @@ const updateDocumentView = () => {
       langPrefix: 'hljs language-' // Add the hljs class for proper styling
     });
 
+    // Configure marked renderer for links
+    const renderer = new marked.Renderer();
+    renderer.link = (href, title, text) => {
+      // For internal links (starting with #), keep them as is
+      if (href.startsWith('#')) {
+        return `<a href="${href}">${text}</a>`;
+      }
+      // For external links (starting with http/https), add target="_blank"
+      if (href.match(/^https?:\/\//)) {
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="external-link">${text}</a>`;
+      }
+      // For all other links, treat as internal
+      return `<a href="${href}">${text}</a>`;
+    };
+    marked.setOptions({ renderer });
+
     // Split markdown into sections based on headers
     const sections = markdownContent.split(/^## .+/gm);
     const headers = markdownContent.match(/^## .+/gm) || [];
@@ -54,14 +70,6 @@ const updateDocumentView = () => {
 
       // Apply syntax highlighting with automatic language detection
       hljs.highlightElement(block);
-    });
-
-    // Handle external links
-    document.querySelectorAll('a[href^="http"]').forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        electronAPI.openExternal(link.href);
-      });
     });
 
     // Scroll to specific headers if clicked from TOC
