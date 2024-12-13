@@ -1,7 +1,7 @@
 {
   "name": "Lexorium",
-  "version": "1.1.2",
-  "description": "A basic Electron app to manage notes with markdown support.",
+  "version": "3.0.0",
+  "description": "A magical text editor for notes and code snippets",
   "main": "main.js",
   "scripts": {
     "start": "electron-forge start",
