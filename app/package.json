@@ -12,6 +12,7 @@
     "electron-squirrel-startup": "^1.0.1",
     "highlight.js": "^11.5.0",
     "marked": "^14.0.0",
+    "openai": "^4.76.1",
     "zip": "^1.2.0"
   },
   "author": "Marius Antonsen",

@@ -1,5 +1,3 @@
-const { ipcRenderer } = require("electron");
-
 let markdownContent = "";
 let currentFilePath = "";
 let undoStack = []; // Stack to keep track of deleted sections for undo
@@ -12,6 +10,15 @@ const updateDocumentView = () => {
       throw new Error("Cannot find the markdown rendering function");
     }
 
+    // Configure marked to use highlight.js for code blocks
+    marked.setOptions({
+      highlight: function(code, language) {
+        const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+        return hljs.highlight(code, { language: validLanguage }).value;
+      },
+      langPrefix: 'hljs language-' // Add the hljs class for proper styling
+    });
+
     // Split markdown into sections based on headers
     const sections = markdownContent.split(/^## .+/gm);
     const headers = markdownContent.match(/^## .+/gm) || [];
@@ -22,8 +29,10 @@ const updateDocumentView = () => {
       const sectionContent = sections[index + 1] || ""; // The content after the header
       htmlContent += `
         <div id="section-${index}" class="markdown-section">
-          <h2>${header.replace(/^##\s*/, "")}</h2>
-          ${markdownRenderFunction(sectionContent)}
+          <div class="markdown-body">
+            <h2>${header.replace(/^##\s*/, "")}</h2>
+            ${markdownRenderFunction(sectionContent)}
+          </div>
         </div>`;
     });
 
@@ -45,6 +54,14 @@ const updateDocumentView = () => {
 
       // Apply syntax highlighting with automatic language detection
       hljs.highlightElement(block);
+    });
+
+    // Handle external links
+    document.querySelectorAll('a[href^="http"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        electronAPI.openExternal(link.href);
+      });
     });
 
     // Scroll to specific headers if clicked from TOC
@@ -88,15 +105,16 @@ const updateTOC = () => {
 };
 
 const deleteSection = (index) => {
-  const headers = markdownContent.match(/^## .+/gm) || [];
-
-  if (headers.length === 0 || index >= headers.length) {
-    console.error("Invalid header index or no headers found.");
+  // Find all section markers
+  const sectionMatches = [...markdownContent.matchAll(/<!-- start-section-([a-z0-9]+) -->/g)];
+  
+  if (sectionMatches.length === 0 || index >= sectionMatches.length) {
+    console.error("Invalid section index or no sections found.");
     return;
   }
 
-  const header = headers[index];
-  const sectionId = header.replace(/^##\s*/, "").replace(/\s/g, "-");
+  // Get the section ID for the selected index
+  const sectionId = sectionMatches[index][1];
   const startMarker = `<!-- start-section-${sectionId} -->`;
   const endMarker = `<!-- end-section-${sectionId} -->`;
 
@@ -158,53 +176,59 @@ const copyCodeToClipboard = (block) => {
     });
 };
 
+// Settings and ChatGPT functionality
+const settingsBtn = document.getElementById('settings-btn');
+const settingsModal = document.getElementById('settings-modal');
+const closeModal = document.querySelector('.close-modal');
+const apiKeyInput = document.getElementById('api-key');
+const saveApiKeyBtn = document.getElementById('save-api-key');
 
-const saveToFile = () => {
-  if (currentFilePath) {
-    ipcRenderer.invoke("file:save", {
-      filePath: currentFilePath,
-      content: markdownContent,
-    });
-  } else {
-    alert("No file is currently open.");
+// Show/hide settings modal
+settingsBtn.addEventListener('click', () => {
+  settingsModal.style.display = 'block';
+  // Load existing API key
+  electronAPI.getApiKey().then(apiKey => {
+    if (apiKey) {
+      apiKeyInput.value = apiKey;
+    }
+  });
+});
+
+closeModal.addEventListener('click', () => {
+  settingsModal.style.display = 'none';
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', (event) => {
+  if (event.target === settingsModal) {
+    settingsModal.style.display = 'none';
   }
-};
+});
+
+// Save API key
+saveApiKeyBtn.addEventListener('click', async () => {
+  const apiKey = apiKeyInput.value.trim();
+  if (!apiKey) {
+    alert('Please enter an API key');
+    return;
+  }
+
+  try {
+    const success = await electronAPI.setApiKey(apiKey);
+    if (success) {
+      alert('API key saved successfully');
+      settingsModal.style.display = 'none';
+    } else {
+      alert('Failed to save API key');
+    }
+  } catch (error) {
+    alert('Error saving API key: ' + error.message);
+  }
+});
 
 // Event Listeners and IPC Handlers
-
-ipcRenderer.on("file-new", () => {
-  const newFileContent = ""; // New file starts with empty content
-  markdownContent = newFileContent;
-  updateDocumentView();
-  updateTOC();
-});
-
-ipcRenderer.on("file-opened", (event, { filePath, content }) => {
-  currentFilePath = filePath;
-  markdownContent = content;
-  updateDocumentView();
-  updateTOC();
-});
-
-ipcRenderer.on("file-save-request", () => {
-  saveToFile();
-});
-
-// Listen for dark mode updates from the main process
-ipcRenderer.on("update-dark-mode", (event, isDarkMode) => {
-  document.body.classList.toggle("dark-mode", isDarkMode);
-  const highlightStyle = document.getElementById("highlight-style");
-  if (isDarkMode) {
-    highlightStyle.href =
-      "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css";
-  } else {
-    highlightStyle.href =
-      "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-light.min.css";
-  }
-});
-
 const addNoteButton = document.getElementById("add-note");
-const undoButton = document.getElementById("undo"); // Add this line to get the Undo button
+const undoButton = document.getElementById("undo");
 const tocSection = document.getElementById("toc");
 const documentView = document.getElementById("document-view");
 
@@ -213,38 +237,65 @@ const getCurrentTimeStamp = () => {
   return `${now.getDate()}.${now.getMonth() + 1}.${now.getFullYear()} - ${now.getHours()}:${now.getMinutes()}`;
 };
 
-addNoteButton.addEventListener("click", () => {
+const generateRandomId = () => {
+  return Math.random().toString(36).substr(2, 9);
+};
+
+addNoteButton.addEventListener("click", async () => {
   const headerInput = document.getElementById("header-input");
   const bodyInput = document.getElementById("body-input");
+  const useChatGPT = document.getElementById("use-chatgpt").checked;
 
-  const headerValue = headerInput.value || getCurrentTimeStamp();
-  const bodyValue = bodyInput.value.trim(); // Trim whitespace from the body input
-
-  // Check if the body is empty
-  if (bodyValue === "") {
+  const bodyValue = bodyInput.value.trim();
+  if (!bodyValue) {
     alert("Note body cannot be empty. Please enter some content.");
-    return; // Stop the submission if the body is empty
+    return;
   }
 
-  // Add markers for the start and end of the section
-  const newNote = `
-<!-- start-section-${headerValue.replace(/\s/g, "-")} -->
+  try {
+    let headerValue = headerInput.value.trim();
+    let response = null;
+
+    if (useChatGPT) {
+      // Process with ChatGPT
+      const result = await electronAPI.processWithChatGPT("", bodyValue, headerValue);
+      headerValue = result.title || headerValue || getCurrentTimeStamp();
+      response = result.response;
+    } else {
+      headerValue = headerValue || getCurrentTimeStamp();
+    }
+
+    // Create a new note
+    const uniqueId = generateRandomId();
+    const newNote = `
+<!-- start-section-${uniqueId} -->
 ## ${headerValue}
 
-${bodyValue}
-<!-- end-section-${headerValue.replace(/\s/g, "-")} -->
-
+${useChatGPT ? response : bodyValue}
+<!-- end-section-${uniqueId} -->
 `;
 
-  markdownContent += newNote;
+    // Add the new note
+    if (markdownContent) {
+      markdownContent += "\n\n" + newNote;
+    } else {
+      markdownContent = newNote;
+    }
 
-  updateDocumentView();
-  updateTOC();
-  saveToFile();
+    // Update the view
+    updateDocumentView();
+    updateTOC();
+    saveToFile();
 
-  // Clear input fields after submission
-  headerInput.value = "";
-  bodyInput.value = "";
+    // Clear inputs
+    headerInput.value = "";
+    bodyInput.value = "";
+    document.getElementById("use-chatgpt").checked = false;
+
+  } catch (error) {
+    console.error('Error creating note:', error);
+    alert('Error: ' + error.message);
+  }
 });
 
 // Attach event listener to the Undo button
@@ -312,3 +363,46 @@ document.addEventListener("keydown", (event) => {
     undoDelete();
   }
 });
+
+electronAPI.onFileNew((event) => {
+  const newFileContent = ""; // New file starts with empty content
+  markdownContent = newFileContent;
+  currentFilePath = null;
+  updateDocumentView();
+  updateTOC();
+});
+
+electronAPI.onFileOpened((event, { filePath, content }) => {
+  currentFilePath = filePath;
+  markdownContent = content;
+  updateDocumentView();
+  updateTOC();
+});
+
+electronAPI.onFileSaveRequest((event) => {
+  saveToFile();
+});
+
+// Listen for dark mode updates from the main process
+electronAPI.onUpdateDarkMode((event, isDarkMode) => {
+  document.body.classList.toggle("dark-mode", isDarkMode);
+  const highlightStyle = document.getElementById("highlight-style");
+  if (isDarkMode) {
+    highlightStyle.href =
+      "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css";
+  } else {
+    highlightStyle.href =
+      "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-light.min.css";
+  }
+});
+
+const saveToFile = () => {
+  if (currentFilePath) {
+    electronAPI.saveFile({
+      filePath: currentFilePath,
+      content: markdownContent,
+    });
+  } else {
+    alert("No file is currently open.");
+  }
+};
