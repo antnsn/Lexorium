@@ -3,7 +3,7 @@
 </p>
 
 # Lexorium
-*(Derived from "lexicon" and "orium," suggesting a place for words)*
+*(Derived from "lexicon" and "orium," suggesting a place for words)* 
 
 **Lexorium** is an open-source Electron application designed to streamline the management of text and code snippets. It's your go-to tool for those moments when you need to temporarily store text before it finds its final destination. Whether it's notes, code snippets, or any other text, **Lexorium** ensures you can easily save, search, and organize your content.
 
@@ -15,6 +15,10 @@ Proudly built with the assistance of ChatGPT, **Lexorium** is a testament to wha
   - **Table of Contents**: Quickly navigate through your notes.
   - **Document View**: View your notes with full markdown support, including syntax highlighting and the ability to copy code blocks.
   - **Input Section**: Easily add new notes with headers and body content.
+
+- **ChatGPT Integration**:
+  - Use ChatGPT to generate notes based on your input.
+  - Use ChatGPT to process your notes and generate new notes based on the existing ones.
 
 - **Enhanced Editing**:
   - Edit any section directly in place with a click
