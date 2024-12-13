@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { saveLastOpenedFile, getRecentFiles } = require('./utils');
 const { DEBUG } = require('./config');
+const shell = require('electron').shell;
 
 function buildRecentFilesSubmenu(mainWindow) {
     const recentFiles = getRecentFiles();
@@ -172,11 +173,8 @@ function createMenu(mainWindow) {
                     click: () => {
                         const configPath = path.join(app.getPath('userData'), 'config.json');
                         if (fs.existsSync(configPath)) {
-                            const content = fs.readFileSync(configPath, 'utf-8');
-                            mainWindow.webContents.send('file-opened', {
-                                filePath: configPath,
-                                content
-                            });
+                            // Show the file in Finder
+                            shell.showItemInFolder(configPath);
                         } else {
                             dialog.showErrorBox('Error', 'Config file not found');
                         }
