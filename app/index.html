@@ -22,21 +22,23 @@
         <div id="container">
             <!-- TOC Section -->
             <div id="toc-section">
-                <h1 id="logo">Lexorium</h1>
+                <div class="toc-header">
+                    <h1 id="logo">Lexorium</h1>
+                </div>
                 <h2>Table of Contents</h2>
                 <input type="text" id="search-input" placeholder="Search..." />
                 <div id="toc"></div>
                 <div id="undo-container">
-                  <button type="button" id="undo">Restore</button>
+                  <button type="button" class="undo-button" id="undo">Undo Delete</button>
                 </div>
-              </div>
+            </div>
 
             <!-- Divider between TOC and Document sections -->
             <div class="divider"></div>
 
             <!-- Document Section -->
             <div id="doc-section">
-                <div id="document-view" class="markdown-body"></div>
+                <div id="document-view"></div>
             </div>
 
             <!-- Divider between Document and New Note sections -->
@@ -51,19 +53,61 @@
                     placeholder="Header (optional)"
                 />
                 <textarea id="body-input" placeholder="Body"></textarea>
-                <button id="add-note">Add Note</button>
+                <div class="input-controls">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="use-chatgpt" />
+                        Analyze with ChatGPT
+                    </label>
+                    <button id="add-note">
+                        <span class="button-content">
+                            <span class="button-text">Add Note</span>
+                        </span>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Include the marked.js library -->
-        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-        <!-- Include highlight.js -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="settings-section">
+                    <label for="api-key">OpenAI API Key:</label>
+                    <input type="password" id="api-key" placeholder="Enter your OpenAI API key">
+                    <button id="save-api-key">Save API Key</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
         <script>
             console.log("marked.js is loaded:", typeof marked !== "undefined");
             console.log("highlight.js is loaded:", typeof hljs !== "undefined");
         </script>
-        <!-- Include the custom renderer script -->
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/autosize.js/6.0.1/autosize.min.js"></script>
         <script src="renderer.js"></script>
+        <script>
+            // Handle all link clicks to open in external browser
+            document.addEventListener('click', async (event) => {
+                const link = event.target.closest('a');
+                if (link && link.classList.contains('external-link')) {
+                    event.preventDefault();
+                    const href = link.getAttribute('href');
+                    if (href && href.startsWith('http')) {
+                        try {
+                            await window.electronAPI.openExternalLink(href);
+                        } catch (error) {
+                            console.error('Failed to open external link:', error);
+                        }
+                    }
+                }
+                // Let internal links (like #section-1) work normally
+            });
+        </script>
     </body>
 </html>

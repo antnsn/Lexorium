@@ -4,43 +4,19 @@ const {
   ipcMain,
   nativeTheme,
   Menu,
-  MenuItem,
-  dialog,
+  shell,
+  dialog
 } = require("electron");
 const path = require("path");
 const fs = require("fs");
+const { initializeOpenAI, sendToChatGPT, loadApiKey, processWithChatGPT } = require('./chatgpt');
+const { createMenu, updateMenu } = require('./menu');
+const { loadLastOpenedFile, cleanUpTempFiles, saveLastOpenedFile } = require('./utils');
+const { DEBUG } = require('./config');
 
 let mainWindow;
 let recentFiles = [];
 const configPath = path.join(app.getPath("userData"), "config.json");
-
-function saveLastOpenedFile(filePath) {
-  const config = { lastOpenedFile: filePath };
-  fs.writeFileSync(configPath, JSON.stringify(config));
-}
-
-function loadLastOpenedFile() {
-  if (fs.existsSync(configPath)) {
-    const config = JSON.parse(fs.readFileSync(configPath));
-    if (config.lastOpenedFile && fs.existsSync(config.lastOpenedFile)) {
-      return config.lastOpenedFile;
-    }
-  }
-  return null;
-}
-
-function createTempFile() {
-  const tempFilePath = path.join(app.getPath("userData"), "temp.md");
-  fs.writeFileSync(tempFilePath, ""); // Create an empty temporary markdown file
-  return tempFilePath;
-}
-
-function cleanUpTempFiles() {
-  const tempFilePath = path.join(app.getPath("userData"), "temp.md");
-  if (fs.existsSync(tempFilePath)) {
-    fs.unlinkSync(tempFilePath);
-  }
-}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -48,9 +24,27 @@ function createWindow() {
     height: 950,
     icon: path.join(__dirname, "assets", "icon.png"),
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, "preload.js")
     },
+  });
+
+  // Prevent new windows from opening within Electron
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // Open all http(s) links in default browser
+    if (url.startsWith('http')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+
+  // Handle navigation attempts within the window
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url.startsWith('http')) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
   });
 
   mainWindow.loadFile("index.html");
@@ -74,203 +68,108 @@ function createWindow() {
     });
   });
 
-  const isMac = process.platform === "darwin";
-
-  const menu = Menu.buildFromTemplate([
-    ...(isMac
-      ? [
-          {
-            label: app.name,
-            submenu: [
-              { role: "about" },
-              { type: "separator" },
-              { role: "services" },
-              { type: "separator" },
-              { role: "hide" },
-              { role: "hideOthers" },
-              { role: "unhide" },
-              { type: "separator" },
-              { role: "quit" },
-            ],
-          },
-        ]
-      : []),
-    {
-      label: "File",
-      submenu: [
-        {
-          label: "New",
-          accelerator: isMac ? "Cmd+N" : "Ctrl+N",
-          click: async () => {
-            try {
-              const { filePath } = await dialog.showSaveDialog(mainWindow, {
-                title: "Create New Markdown File",
-                defaultPath: "untitled.md",
-                filters: [{ name: "Markdown Files", extensions: ["md"] }],
-              });
-
-              if (filePath) {
-                fs.writeFileSync(filePath, ""); // Create an empty markdown file
-                saveLastOpenedFile(filePath);
-                mainWindow.webContents.send("file-opened", {
-                  filePath,
-                  content: "",
-                });
-              }
-            } catch (error) {
-              console.error("Error creating new file:", error);
-            }
-          },
-        },
-        {
-          label: "Open",
-          accelerator: isMac ? "Cmd+O" : "Ctrl+O",
-          click: async () => {
-            try {
-              const { canceled, filePaths } = await dialog.showOpenDialog(
-                mainWindow,
-                {
-                  properties: ["openFile"],
-                  filters: [{ name: "Markdown Files", extensions: ["md"] }],
-                }
-              );
-              if (!canceled && filePaths.length > 0) {
-                const filePath = filePaths[0];
-                const content = fs.readFileSync(filePath, "utf-8");
-                saveLastOpenedFile(filePath);
-                mainWindow.webContents.send("file-opened", {
-                  filePath,
-                  content,
-                });
-              }
-            } catch (error) {
-              console.error("Error opening file:", error);
-            }
-          },
-        },
-        {
-          id: "recent-files",
-          label: "Recent Files",
-          submenu: [],
-        },
-        { type: "separator" },
-        {
-          label: "Save",
-          accelerator: isMac ? "Cmd+S" : "Ctrl+S",
-          click: () => {
-            mainWindow.webContents.send("file-save-request");
-          },
-        },
-        isMac ? { role: "close" } : { role: "quit" },
-      ],
-    },
-    {
-      label: "Edit",
-      submenu: [
-        { role: "undo" },
-        { role: "redo" },
-        { type: "separator" },
-        { role: "cut" },
-        { role: "copy" },
-        { role: "paste" },
-        { role: "selectAll" },
-      ],
-    },
-    {
-      label: "View",
-      submenu: [
-        {
-          label: "Dark Mode",
-          type: "radio",
-          click: () => {
-            nativeTheme.themeSource = "dark";
-            mainWindow.webContents.send("update-dark-mode", true);
-          },
-        },
-        {
-          label: "Light Mode",
-          type: "radio",
-          click: () => {
-            nativeTheme.themeSource = "light";
-            mainWindow.webContents.send("update-dark-mode", false);
-          },
-        },
-        {
-          label: "System Theme",
-          type: "radio",
-          click: () => {
-            nativeTheme.themeSource = "system";
-            mainWindow.webContents.send(
-              "update-dark-mode",
-              nativeTheme.shouldUseDarkColors
-            );
-          },
-        },
-        { type: "separator" },
-        { role: "reload" },
-        { role: "toggledevtools" },
-      ],
-    },
-    {
-      label: "Window",
-      role: "window",
-      submenu: [{ role: "minimize" }, { role: "zoom" }, { role: "close" }],
-    },
-    {
-      label: "Help",
-      role: "help",
-      submenu: [
-        {
-          label: 'About',
-          click: () => {
-            dialog.showMessageBox({
-              type: 'none',  // No sound or icon
-              title: 'About Lexorium',
-              message: `Lexorium \n\nVersion: ${app.getVersion()}\n\nVisit our GitHub page:`,
-              buttons: ['Open GitHub', 'Close'],
-              defaultId: 0,
-              icon: 'assets/icon.png',  // Optional: Path to an app icon
-            }).then(result => {
-              if (result.response === 0) {
-                const { shell } = require("electron");
-                shell.openExternal("https://github.com/antnsn/lexorium");
-              }
-            });
-          }
-        },
-      ],
-    },
-  ]);
-
+  // Build and set the application menu
+  const template = createMenu(mainWindow);
+  const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
-
-  ipcMain.handle("file:save", (event, data) => {
-    try {
-      if (data.filePath.includes("temp.md")) {
-        const savePath = dialog.showSaveDialogSync(mainWindow, {
-          title: "Save Markdown File",
-          defaultPath: "untitled.md",
-          filters: [{ name: "Markdown Files", extensions: ["md"] }],
-        });
-
-        if (savePath) {
-          fs.writeFileSync(savePath, data.content);
-          saveLastOpenedFile(savePath);
-          fs.unlinkSync(data.filePath); // Remove the temporary file after saving
-          mainWindow.webContents.send("file-opened", {
-            filePath: savePath,
-            content: data.content,
-          });
-        }
-      } else {
-        fs.writeFileSync(data.filePath, data.content);
-        saveLastOpenedFile(data.filePath);
-      }
-    } catch (error) {
-      console.error("Error saving file:", error);
-    }
-  });
+  updateMenu(mainWindow);
 }
+
+// Create a temporary file
+function createTempFile() {
+  const tempFilePath = path.join(app.getPath("userData"), "temp.md");
+  fs.writeFileSync(tempFilePath, "");
+  return tempFilePath;
+}
+
+// IPC handlers
+ipcMain.handle("open-external-url", async (event, url) => {
+  try {
+    await shell.openExternal(url);
+    return true;
+  } catch (error) {
+    console.error('Error opening external URL:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle("window:reload", () => {
+  mainWindow.reload();
+});
+
+// File handling IPC
+ipcMain.handle('dialog:openFile', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile'],
+    filters: [
+      { name: 'JSON Files', extensions: ['json'] },
+      { name: 'Markdown Files', extensions: ['md'] }
+    ]
+  });
+
+  if (!result.canceled && result.filePaths.length > 0) {
+    const filePath = result.filePaths[0];
+    try {
+      const content = await fs.promises.readFile(filePath, 'utf8');
+      return { filePath, content };
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // Return empty content for new files
+        return { 
+          filePath, 
+          content: JSON.stringify({ 
+            version: "1.0", 
+            sections: [] 
+          }, null, 2) 
+        };
+      }
+      throw error;
+    }
+  }
+  return null;
+});
+
+ipcMain.handle('file:save', async (event, { filePath, content }) => {
+  try {
+    await fs.promises.writeFile(filePath, content, 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Error saving file:', error);
+    return false;
+  }
+});
+
+// ChatGPT handlers
+ipcMain.handle('chatgpt:set-api-key', async (event, apiKey) => {
+  try {
+    return await initializeOpenAI(apiKey);
+  } catch (error) {
+    DEBUG.error('Error setting API key:', error);
+    return false;
+  }
+});
+
+ipcMain.handle('chatgpt:get-api-key', async () => {
+  return loadApiKey();
+});
+
+ipcMain.handle('chatgpt:send', async (event, text, type) => {
+  try {
+    return await sendToChatGPT(text, type);
+  } catch (error) {
+    DEBUG.error('Error sending to ChatGPT:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('chatgpt:process', async (event, prompt, bodyContent, headerValue) => {
+  try {
+    return await processWithChatGPT(prompt, bodyContent, headerValue);
+  } catch (error) {
+    DEBUG.error('Error processing with ChatGPT:', error);
+    throw error;
+  }
+});
 
 app.on("ready", () => {
   cleanUpTempFiles(); // Ensure any leftover temp files are removed
