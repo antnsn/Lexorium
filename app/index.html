@@ -32,7 +32,7 @@
                 <input type="text" id="search-input" placeholder="Search..." />
                 <div id="toc"></div>
                 <div id="undo-container">
-                  <button type="button" id="undo">Undo Delete</button>
+                  <button type="button" class="undo-button" id="undo">Undo Delete</button>
                 </div>
             </div>
 
@@ -105,6 +105,87 @@
                 }
                 // Let internal links (like #section-1) work normally
             });
+
+            function editSection(sectionId) {
+                const section = document.getElementById(`section-${sectionId}`);
+                const markdownBody = section.querySelector('.markdown-body');
+                
+                // Get the section data from the current document
+                const sectionData = currentDocumentData.sections.find(s => s.id === sectionId);
+                if (!sectionData) return;
+
+                // Create textarea with section content
+                const textarea = document.createElement('textarea');
+                textarea.value = sectionData.content;
+                textarea.style.width = '100%';
+                textarea.style.minHeight = '200px';
+                textarea.style.marginBottom = '10px';
+
+                // Create action buttons
+                const actions = document.createElement('div');
+                actions.className = 'edit-actions';
+                actions.innerHTML = `
+                    <button class="save-button" onclick="saveSection('${sectionId}')">Save</button>
+                    <button class="cancel-button" onclick="cancelEdit('${sectionId}')">Cancel</button>
+                `;
+
+                // Replace content with editor
+                markdownBody.innerHTML = '';
+                markdownBody.appendChild(textarea);
+                markdownBody.appendChild(actions);
+                
+                // Add editing class for styling
+                section.classList.add('editing');
+            }
+
+            function saveSection(sectionId) {
+                const section = document.getElementById(`section-${sectionId}`);
+                const markdownBody = section.querySelector('.markdown-body');
+                const textarea = markdownBody.querySelector('textarea');
+                const newContent = textarea.value;
+
+                // Update the section data
+                const sectionIndex = currentDocumentData.sections.findIndex(s => s.id === sectionId);
+                if (sectionIndex !== -1) {
+                    currentDocumentData.sections[sectionIndex].content = newContent;
+                }
+
+                // Update the rendered content
+                markdownBody.innerHTML = marked.parse(newContent);
+                
+                // Remove editing class
+                section.classList.remove('editing');
+
+                // Save the entire document
+                saveDocument();
+            }
+
+            function cancelEdit(sectionId) {
+                const section = document.getElementById(`section-${sectionId}`);
+                const markdownBody = section.querySelector('.markdown-body');
+                
+                // Get the original content from document data
+                const sectionData = currentDocumentData.sections.find(s => s.id === sectionId);
+                if (!sectionData) return;
+
+                // Restore the original content
+                markdownBody.innerHTML = marked.parse(sectionData.content);
+                
+                // Remove editing class
+                section.classList.remove('editing');
+            }
+
+            async function saveDocument() {
+                // Save the JSON document
+                try {
+                    await window.electronAPI.saveFile({
+                        filePath: currentFilePath,
+                        content: JSON.stringify(currentDocumentData, null, 2)
+                    });
+                } catch (error) {
+                    console.error('Failed to save document:', error);
+                }
+            }
         </script>
     </body>
 </html>

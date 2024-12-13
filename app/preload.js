@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onUpdateDarkMode: (callback) => ipcRenderer.on('update-dark-mode', callback),
     saveFile: (data) => ipcRenderer.invoke('file:save', data),
     openFile: () => ipcRenderer.invoke('dialog:openFile'),
+    reloadWindow: () => ipcRenderer.invoke('window:reload'),
     
     // ChatGPT APIs
     sendToChatGPT: (text, type) => ipcRenderer.invoke('chatgpt:send', text, type),

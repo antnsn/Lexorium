@@ -4,7 +4,8 @@ const {
   ipcMain,
   nativeTheme,
   Menu,
-  shell
+  shell,
+  dialog
 } = require("electron");
 const path = require("path");
 const fs = require("fs");
@@ -82,26 +83,59 @@ function createTempFile() {
 }
 
 // IPC handlers
-ipcMain.handle("file:save", async (event, { filePath, content }) => {
-  try {
-    fs.writeFileSync(filePath, content);
-    saveLastOpenedFile(filePath);
-    DEBUG.log('Updating menu after save');
-    updateMenu(mainWindow);
-    return true;
-  } catch (error) {
-    DEBUG.error("Error saving file:", error);
-    return false;
-  }
-});
-
-ipcMain.handle('open-external-url', async (event, url) => {
+ipcMain.handle("open-external-url", async (event, url) => {
   try {
     await shell.openExternal(url);
     return true;
   } catch (error) {
     console.error('Error opening external URL:', error);
     throw error;
+  }
+});
+
+ipcMain.handle("window:reload", () => {
+  mainWindow.reload();
+});
+
+// File handling IPC
+ipcMain.handle('dialog:openFile', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ['openFile'],
+    filters: [
+      { name: 'JSON Files', extensions: ['json'] },
+      { name: 'Markdown Files', extensions: ['md'] }
+    ]
+  });
+
+  if (!result.canceled && result.filePaths.length > 0) {
+    const filePath = result.filePaths[0];
+    try {
+      const content = await fs.promises.readFile(filePath, 'utf8');
+      return { filePath, content };
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // Return empty content for new files
+        return { 
+          filePath, 
+          content: JSON.stringify({ 
+            version: "1.0", 
+            sections: [] 
+          }, null, 2) 
+        };
+      }
+      throw error;
+    }
+  }
+  return null;
+});
+
+ipcMain.handle('file:save', async (event, { filePath, content }) => {
+  try {
+    await fs.promises.writeFile(filePath, content, 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Error saving file:', error);
+    return false;
   }
 });
 

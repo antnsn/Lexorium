@@ -83,8 +83,8 @@ function createMenu(mainWindow) {
                         try {
                             const { filePath } = await dialog.showSaveDialog(mainWindow, {
                                 title: "Create New Markdown File",
-                                defaultPath: "untitled.md",
-                                filters: [{ name: "Markdown Files", extensions: ["md"] }],
+                                defaultPath: "untitled.json",
+                                filters: [{ name: "json Files", extensions: ["json"] }],
                             });
 
                             if (filePath) {

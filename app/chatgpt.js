@@ -140,6 +140,8 @@ async function processWithChatGPT(prompt, bodyContent = '', headerValue = '') {
         let finalHeaderValue = headerValue;
         if (!finalHeaderValue && (prompt || bodyContent)) {
             finalHeaderValue = await sendToChatGPT(bodyContent || prompt, 'title');
+            // Remove any quotes from the title
+            finalHeaderValue = finalHeaderValue.replace(/['"]/g, '');
         }
 
         // Get the main response
