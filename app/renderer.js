@@ -37,33 +37,34 @@ function renderDocument(documentData) {
             </div>`;
     });
 
-    documentView.innerHTML = html;
+    $(documentView).html(html);
 
     // Add copy button to code blocks
-    document.querySelectorAll('pre code').forEach((block) => {
-        const button = document.createElement('button');
-        button.className = 'copy-button';
-        button.innerHTML = '<i class="fas fa-copy"></i>';
-        button.onclick = () => copyCodeToClipboard(block);
+    $('pre code').each(function() {
+        const $block = $(this);
+        const $button = $('<button>')
+            .addClass('copy-button')
+            .html('<i class="fas fa-copy"></i>')
+            .on('click', () => copyCodeToClipboard(this));
         
-        const pre = block.parentNode;
-        pre.style.position = 'relative';
-        pre.insertBefore(button, block);
+        const $pre = $block.parent();
+        $pre.css('position', 'relative');
+        $button.prependTo($pre);
         
         // Apply syntax highlighting
-        hljs.highlightElement(block);
+        hljs.highlightElement(this);
     });
 }
 
 function updateTOC() {
-    const sections = document.querySelectorAll('.markdown-section');
-    tocSection.innerHTML = Array.from(sections)
-        .map(section => {
-            const header = section.querySelector('h2').textContent;
-            const id = section.id;
-            return `<a href="#${id}" class="toc-item">${header}</a>`;
-        })
-        .join('');
+    const $sections = $('.markdown-section');
+    const tocHtml = $sections.map(function() {
+        const header = $(this).find('h2').text();
+        const id = this.id;
+        return `<a href="#${id}" class="toc-item">${header}</a>`;
+    }).get().join('');
+    
+    $(tocSection).html(tocHtml);
 }
 
 function createNewDocument() {
@@ -382,202 +383,79 @@ const generateRandomId = () => {
     return Math.random().toString(36).substr(2, 9);
 };
 
-function autoResizeTextarea(textarea) {
-    // Reset height to auto to get the correct scrollHeight
-    textarea.style.height = 'auto';
-    // Set new height to scrollHeight
-    textarea.style.height = textarea.scrollHeight + 'px';
-}
-
-addNoteButton.addEventListener("click", async () => {
-    const headerInput = document.getElementById("header-input");
-    const bodyInput = document.getElementById("body-input");
-    const useChatGPT = document.getElementById("use-chatgpt").checked;
-    const buttonContent = addNoteButton.querySelector('.button-content');
-    const buttonText = addNoteButton.querySelector('.button-text');
-
-    const bodyValue = bodyInput.value.trim();
-    if (!bodyValue) {
-        alert("Note body cannot be empty. Please enter some content.");
-        return;
-    }
-
-    try {
-        // Disable button and show loading state
-        addNoteButton.disabled = true;
-        if (useChatGPT) {
-            buttonText.textContent = 'Processing with ChatGPT';
-            const spinner = document.createElement('span');
-            spinner.className = 'button-spinner';
-            buttonContent.appendChild(spinner);
-        }
-
-        let headerValue = headerInput.value.trim();
-        let content = bodyValue;
-
-        if (useChatGPT) {
-            // Process with ChatGPT
-            const result = await electronAPI.processWithChatGPT("", bodyValue, headerValue);
-            headerValue = result.title || headerValue || getCurrentTimeStamp();
-            content = result.response;
-        } else {
-            headerValue = headerValue || getCurrentTimeStamp();
-        }
-
-        // Add the new section
-        const newSection = {
-            id: generateRandomId(),
-            title: headerValue,
-            content: content,
-            timestamp: getCurrentTimeStamp()
-        };
-
-        currentDocumentData.sections.push(newSection);
-        
-        // Update view and save
-        renderDocument(currentDocumentData);
-        updateTOC();
-        saveDocument();
-
-        // Clear inputs
-        headerInput.value = "";
-        bodyInput.value = "";
-        if (useChatGPT) {
-            document.getElementById("use-chatgpt").checked = false;
-        }
-
-    } catch (error) {
-        console.error('Error adding note:', error);
-        alert('Error adding note: ' + error.message);
-    } finally {
-        // Reset button state
-        addNoteButton.disabled = false;
-        buttonText.textContent = 'Add Note';
-        const spinner = buttonContent.querySelector('.button-spinner');
-        if (spinner) {
-            spinner.remove();
-        }
-    }
-});
-
-document.getElementById("use-chatgpt").addEventListener("change", async (event) => {
-    if (event.target.checked) {
-        const apiKey = await electronAPI.getApiKey();
-        if (!apiKey) {
-            event.target.checked = false;  // Uncheck the box
-            settingsModal.style.display = "block";
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'settings-message';
-            messageDiv.textContent = 'This feature requires a ChatGPT API key. Please enter your API key below to use this functionality.';
-            
-            // Insert the message at the top of the settings-section
-            const settingsSection = document.querySelector('.settings-section');
-            settingsSection.insertBefore(messageDiv, settingsSection.firstChild);
-
-            // Remove the message when modal is closed
-            const removeMessage = () => {
-                const message = document.querySelector('.settings-message');
-                if (message) {
-                    message.remove();
-                }
-            };
-
-            closeModal.addEventListener('click', removeMessage, { once: true });
-            window.addEventListener('click', (e) => {
-                if (e.target === settingsModal) {
-                    removeMessage();
-                }
-            }, { once: true });
-        }
-    }
-});
-
 function editSection(sectionId) {
-    const section = currentDocumentData.sections.find(s => s.id === sectionId);
-    if (!section) return;
+    const section = document.getElementById(`section-${sectionId}`);
+    const markdownBody = section.querySelector('.markdown-body');
+    
+    // Get the section data from the current document
+    const sectionData = currentDocumentData.sections.find(s => s.id === sectionId);
+    if (!sectionData) return;
 
-    const sectionElement = document.querySelector(`[data-section-id="${sectionId}"]`).closest('.markdown-section');
-    if (!sectionElement) return;
+    // Create the edit HTML structure
+    const editHtml = `
+        <textarea class="edit-content-textarea">${sectionData.content}</textarea>
+        <div class="edit-actions">
+            <button class="save-button" onclick="saveSection('${sectionId}')">Save</button>
+            <button class="cancel-button" onclick="cancelEdit('${sectionId}')">Cancel</button>
+        </div>
+    `;
 
-    // Add editing class to the section
-    sectionElement.classList.add('editing');
+    // Replace content with editor
+    $(markdownBody).html(editHtml);
     
-    // Replace the h2 with an input
-    const headerElement = sectionElement.querySelector('h2');
-    const titleInput = document.createElement('input');
-    titleInput.type = 'text';
-    titleInput.value = section.title;
-    titleInput.className = 'edit-title-input';
-    headerElement.replaceWith(titleInput);
+    // Add editing class for styling
+    $(section).addClass('editing');
+
+    // Get the textarea and ensure no inline styles
+    const textarea = $(markdownBody).find('.edit-content-textarea')[0];
+    textarea.removeAttribute('style');  // Remove any inline styles
     
-    // Get the markdown body div
-    const markdownBody = sectionElement.querySelector('.markdown-body');
-    
-    // Create textarea
-    const textarea = document.createElement('textarea');
-    textarea.value = section.content;
-    
-    // Calculate initial height based on content
-    const lines = section.content.split('\n').length;
-    const lineHeight = 24; // approximate line height in pixels
-    textarea.style.height = (lines * lineHeight) + 'px';
-    
-    // Auto-resize the textarea
-    const autoResize = (elem) => {
-        elem.style.height = 'auto';
-        elem.style.height = (elem.scrollHeight) + 'px';
-    };
-    
-    // Clear and update markdown body
-    markdownBody.innerHTML = '';
-    markdownBody.appendChild(textarea);
-    
-    // Set up resize handlers
-    textarea.addEventListener('input', () => autoResize(textarea));
-    
-    // Focus the title input
-    titleInput.focus();
-    titleInput.select();
-    
-    // Create save button
-    const saveButton = document.createElement('button');
-    saveButton.textContent = 'Save';
-    saveButton.className = 'save-button';
-    saveButton.onclick = async () => {
-        // Update section data
-        section.title = titleInput.value;
-        section.content = textarea.value;
-        
-        // Save to storage
-        await saveDocument();
-        
-        // Force a complete refresh
-        window.electronAPI.reloadWindow();
-    };
-    markdownBody.appendChild(saveButton);
+    // Initialize autosize
+    autosize(textarea);
+
+    // Focus the textarea
+    textarea.focus();
 }
 
 function saveSection(sectionId) {
-    const section = currentDocumentData.sections.find(s => s.id === sectionId);
-    if (!section) return;
+    const section = $(`#section-${sectionId}`);
+    const markdownBody = section.find('.markdown-body');
+    const textarea = markdownBody.find('.edit-content-textarea');
+    
+    // Update the section data
+    const sectionIndex = currentDocumentData.sections.findIndex(s => s.id === sectionId);
+    if (sectionIndex !== -1) {
+        currentDocumentData.sections[sectionIndex].content = textarea.val();
+    }
 
-    const sectionElement = document.querySelector(`[data-section-id="${sectionId}"]`).closest('.markdown-section');
-    const textarea = sectionElement.querySelector('textarea');
-    const titleInput = sectionElement.querySelector('input[type="text"]');
+    // Cleanup autosize
+    autosize.destroy(textarea[0]);
+
+    // Remove editing class
+    section.removeClass('editing');
+
+    // Update the rendered content
+    renderDocument(currentDocumentData);
+    updateTOC();
     
-    section.content = textarea.value;
-    section.title = titleInput.value;
-    sectionElement.classList.remove('editing');
-    
+    // Save the document
     saveDocument();
-    window.electronAPI.reloadWindow();
 }
 
 function cancelEdit(sectionId) {
-    const sectionElement = document.querySelector(`[data-section-id="${sectionId}"]`).closest('.markdown-section');
-    if (!sectionElement) return;
+    const section = $(`#section-${sectionId}`);
+    const markdownBody = section.find('.markdown-body');
     
-    sectionElement.classList.remove('editing');
+    // Cleanup autosize
+    const textarea = markdownBody.find('.edit-content-textarea');
+    if (textarea.length) {
+        autosize.destroy(textarea[0]);
+    }
+    
+    // Remove editing class
+    section.removeClass('editing');
+    
+    // Rerender the section
     renderDocument(currentDocumentData);
 }
 
@@ -709,4 +587,107 @@ electronAPI.onShowSettings(() => {
             apiKeyInput.value = apiKey;
         }
     });
+});
+
+addNoteButton.addEventListener("click", async () => {
+    const headerInput = document.getElementById("header-input");
+    const bodyInput = document.getElementById("body-input");
+    const useChatGPT = document.getElementById("use-chatgpt").checked;
+    const buttonContent = addNoteButton.querySelector('.button-content');
+    const buttonText = addNoteButton.querySelector('.button-text');
+
+    const bodyValue = bodyInput.value.trim();
+    if (!bodyValue) {
+        alert("Note body cannot be empty. Please enter some content.");
+        return;
+    }
+
+    try {
+        // Disable button and show loading state
+        addNoteButton.disabled = true;
+        if (useChatGPT) {
+            buttonText.textContent = 'Processing with ChatGPT';
+            const spinner = document.createElement('span');
+            spinner.className = 'button-spinner';
+            buttonContent.appendChild(spinner);
+        }
+
+        let headerValue = headerInput.value.trim();
+        let content = bodyValue;
+
+        if (useChatGPT) {
+            // Process with ChatGPT
+            const result = await electronAPI.processWithChatGPT("", bodyValue, headerValue);
+            headerValue = result.title || headerValue || getCurrentTimeStamp();
+            content = result.response;
+        } else {
+            headerValue = headerValue || getCurrentTimeStamp();
+        }
+
+        // Add the new section
+        const newSection = {
+            id: generateRandomId(),
+            title: headerValue,
+            content: content,
+            timestamp: getCurrentTimeStamp()
+        };
+
+        currentDocumentData.sections.push(newSection);
+        
+        // Update view and save
+        renderDocument(currentDocumentData);
+        updateTOC();
+        saveDocument();
+
+        // Clear inputs
+        headerInput.value = "";
+        bodyInput.value = "";
+        if (useChatGPT) {
+            document.getElementById("use-chatgpt").checked = false;
+        }
+
+    } catch (error) {
+        console.error('Error adding note:', error);
+        alert('Error adding note: ' + error.message);
+    } finally {
+        // Reset button state
+        addNoteButton.disabled = false;
+        buttonText.textContent = 'Add Note';
+        const spinner = buttonContent.querySelector('.button-spinner');
+        if (spinner) {
+            spinner.remove();
+        }
+    }
+});
+
+document.getElementById("use-chatgpt").addEventListener("change", async (event) => {
+    if (event.target.checked) {
+        const apiKey = await electronAPI.getApiKey();
+        if (!apiKey) {
+            event.target.checked = false;  // Uncheck the box
+            settingsModal.style.display = "block";
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'settings-message';
+            messageDiv.textContent = 'This feature requires a ChatGPT API key. Please enter your API key below to use this functionality.';
+            
+            // Insert the message at the top of the settings-section
+            const settingsSection = document.querySelector('.settings-section');
+            settingsSection.insertBefore(messageDiv, settingsSection.firstChild);
+
+            // Remove the message when modal is closed
+            const removeMessage = () => {
+                const message = document.querySelector('.settings-message');
+                if (message) {
+                    message.remove();
+                }
+            };
+
+            closeModal.addEventListener('click', removeMessage, { once: true });
+            window.addEventListener('click', (e) => {
+                if (e.target === settingsModal) {
+                    removeMessage();
+                }
+            }, { once: true });
+        }
+    }
 });

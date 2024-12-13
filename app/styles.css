@@ -226,7 +226,6 @@ h2 {
 /* Body Input Styling */
 textarea {
     width: 100%;
-    min-height: 100px;
     padding: 10px;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
@@ -335,7 +334,6 @@ textarea:focus {
 
 .editing-mode .edit-body-input {
     width: 100%;
-    min-height: 200px;
     padding: 12px;
     margin-bottom: 15px;
     border: 1px solid var(--border-color-light);
@@ -344,7 +342,7 @@ textarea:focus {
     color: var(--font-color-light);
     font-family: var(--font-family);
     resize: none;
-    overflow-y: hidden;
+    overflow: hidden;
 }
 
 .dark-mode .editing-mode .edit-body-input {
@@ -406,8 +404,6 @@ textarea:focus {
     padding: calc(var(--section-padding) + 20px) var(--section-padding) var(--section-padding);
     margin: 20px 0;
 }
-
-
 
 .markdown-section.editing::before {
     content: "Editing";
@@ -511,6 +507,10 @@ textarea:focus {
     outline: none;
     border-color: var(--focus-border-color);
     box-shadow: 0 0 0 2px rgba(86, 182, 194, 0.2);
+}
+
+.markdown-section.editing .section-controls {
+    display: none;
 }
 
 /* Button Styling */
@@ -1102,4 +1102,94 @@ body,
 
 .dark-mode .markdown-body a {
     color: var(--link-color-dark);
+}
+
+.edit-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--input-background-light);
+    border-radius: var(--border-radius);
+}
+
+.dark-mode .edit-container {
+    background: var(--input-background-dark);
+}
+
+.edit-header-input {
+    width: 100%;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background: var(--input-background-light);
+    color: var(--font-color-light);
+}
+
+.dark-mode .edit-header-input {
+    background: var(--input-background-dark);
+    color: var(--font-color-dark);
+    border-color: var(--border-color-dark);
+}
+
+.edit-content-textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background: var(--input-background-light);
+    color: var(--font-color-light);
+    font-family: var(--font-family);
+    line-height: 1.5;
+    resize: none;
+    overflow: hidden;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+.dark-mode .edit-content-textarea {
+    background: var(--input-background-dark);
+    color: var(--font-color-dark);
+    border-color: var(--border-color-dark);
+}
+
+.edit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.edit-actions button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all var(--transition-duration);
+}
+
+.edit-actions .save-button {
+    background: var(--accent-color);
+    color: white;
+}
+
+.edit-actions .save-button:hover {
+    background: var(--button-hover-background-color);
+}
+
+.edit-actions .cancel-button {
+    background: var(--button-background-color);
+    color: var(--button-text-color);
+}
+
+.edit-actions .cancel-button:hover {
+    background: var(--red-color);
+}
+
+/* Hide section controls during edit mode */
+.markdown-section.editing .section-controls {
+    display: none;
 }
