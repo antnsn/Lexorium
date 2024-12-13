@@ -159,6 +159,14 @@ function createMenu(mainWindow) {
                 { role: "copy" },
                 { role: "paste" },
                 { role: "selectAll" },
+                { type: "separator" },
+                {
+                    label: "Settings",
+                    accelerator: isMac ? "Cmd+," : "Ctrl+,",
+                    click: () => {
+                        mainWindow.webContents.send('show-settings');
+                    }
+                }
             ],
         },
         {

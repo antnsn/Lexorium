@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onFileOpened: (callback) => ipcRenderer.on('file-opened', callback),
     onFileSaveRequest: (callback) => ipcRenderer.on('file-save-request', callback),
     onUpdateDarkMode: (callback) => ipcRenderer.on('update-dark-mode', callback),
+    onShowSettings: (callback) => ipcRenderer.on('show-settings', callback),
     saveFile: (data) => ipcRenderer.invoke('file:save', data),
     openFile: () => ipcRenderer.invoke('dialog:openFile'),
     reloadWindow: () => ipcRenderer.invoke('window:reload'),

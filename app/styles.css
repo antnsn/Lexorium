@@ -515,6 +515,7 @@ textarea:focus {
 
 /* Button Styling */
 button {
+    min-width: fit-content;
     width: auto;
     align-self: flex-end;
     padding: 10px 20px;
@@ -525,6 +526,36 @@ button {
     border-radius: var(--border-radius);
     cursor: pointer;
     transition: background-color var(--transition-duration);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.button-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.button-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.button-spinner {
+    flex-shrink: 0;  /* Prevent spinner from shrinking */
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-left: 8px;
 }
 
 button:hover,
@@ -548,107 +579,28 @@ button:focus {
     border-color: var(--focus-border-color);
 }
 
-/* Markdown Body Styling */
-.markdown-body {
-    padding: 10px;
-    color: var(--font-color-light);
+/* Loading spinner for buttons */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-.dark-mode .markdown-body {
-    color: var(--font-color-dark);
+/* Input controls layout */
+.input-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-/* TOC Link Styling */
-#toc-section a {
-    color: var(--link-color-light);
-    text-decoration: none;
-    font-weight: 500;
+.checkbox-label {
+    flex-shrink: 0;  /* Prevent checkbox from shrinking */
 }
 
-#toc-section a:hover,
-.dark-mode #toc-section a:hover {
-    text-decoration: underline;
-}
-
-.dark-mode #toc-section a {
-    color: var(--link-color-dark);
-}
-
-/* Link Styling for Main Content  */
-.markdown-body a {
-    color: var(--link-color-light);
-    text-decoration: none;
-}
-
-.markdown-body a:hover {
-    text-decoration: underline;
-}
-
-.dark-mode .markdown-body a {
-    color: var(--link-color-dark);
-}
-
-/* Scrollbar light */
-body,
-#input-section,
-#toc-section,
-#doc-section,
-#doc-section .markdown-body,
-.modal textarea,
-.modal-content {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb-light) var(--scrollbar-track-light);
-}
-
-/* Scrollbar dark */
-.dark-mode body,
-.dark-mode #input-section,
-.dark-mode #toc-section,
-.dark-mode #doc-section,
-.dark-mode #doc-section .markdown-body,
-.dark-mode .modal-content,
-.dark-mode .modal textarea {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb-dark) var(--scrollbar-track-dark);
-}
-
-/* For Webkit browsers */
-body,
-#input-section,
-#toc-section,
-#doc-section,
-#doc-section .markdown-body,
-.modal textarea,
-.modal-content {
-    &::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background: var(--scrollbar-track-light);
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background-color: var(--scrollbar-thumb-light);
-        border-radius: 4px;
-    }
-}
-
-.dark-mode body,
-.dark-mode #input-section,
-.dark-mode #toc-section,
-.dark-mode #doc-section,
-.dark-mode #doc-section .markdown-body,
-.dark-mode .modal textarea,
-.dark-mode .modal-content {
-    &::-webkit-scrollbar-track {
-        background: var(--scrollbar-track-dark);
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background-color: var(--scrollbar-thumb-dark);
-    }
+#add-note {
+    flex-shrink: 0;  /* Prevent button from shrinking */
+    min-width: 120px;  /* Minimum width to prevent too much squishing */
 }
 
 /* Search Input Styling */
@@ -1037,4 +989,117 @@ pre:hover .copy-button {
 
 .dark-mode .highlighted {
     background-color: rgba(var(--accent-color-rgb), 0.15);
+}
+
+.settings-message {
+    background-color: var(--accent-color);
+    color: white;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: var(--border-radius);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Scrollbar light */
+body,
+#input-section,
+#toc-section,
+#doc-section,
+#doc-section .markdown-body,
+.modal textarea,
+.modal-content {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-light) var(--scrollbar-track-light);
+}
+
+/* Scrollbar dark */
+.dark-mode body,
+.dark-mode #input-section,
+.dark-mode #toc-section,
+.dark-mode #doc-section,
+.dark-mode #doc-section .markdown-body,
+.dark-mode .modal-content,
+.dark-mode .modal textarea {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-dark) var(--scrollbar-track-dark);
+}
+
+/* For Webkit browsers */
+body,
+#input-section,
+#toc-section,
+#doc-section,
+#doc-section .markdown-body,
+.modal textarea,
+.modal-content {
+    &::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: var(--scrollbar-track-light);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--scrollbar-thumb-light);
+        border-radius: 4px;
+    }
+}
+
+.dark-mode body,
+.dark-mode #input-section,
+.dark-mode #toc-section,
+.dark-mode #doc-section,
+.dark-mode #doc-section .markdown-body,
+.dark-mode .modal textarea,
+.dark-mode .modal-content {
+    &::-webkit-scrollbar-track {
+        background: var(--scrollbar-track-dark);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--scrollbar-thumb-dark);
+    }
+}
+
+/* Markdown Body Styling */
+.markdown-body {
+    padding: 10px;
+    color: var(--font-color-light);
+}
+
+.dark-mode .markdown-body {
+    color: var(--font-color-dark);
+}
+
+/* TOC Link Styling */
+#toc-section a {
+    color: var(--link-color-light);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+#toc-section a:hover,
+.dark-mode #toc-section a:hover {
+    text-decoration: underline;
+}
+
+.dark-mode #toc-section a {
+    color: var(--link-color-dark);
+}
+
+/* Link Styling for Main Content  */
+.markdown-body a {
+    color: var(--link-color-light);
+    text-decoration: none;
+}
+
+.markdown-body a:hover {
+    text-decoration: underline;
+}
+
+.dark-mode .markdown-body a {
+    color: var(--link-color-dark);
 }

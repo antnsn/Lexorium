@@ -326,23 +326,12 @@ function updateCodeBlockTheme(darkMode) {
 }
 
 // Settings and ChatGPT functionality
-const settingsBtn = document.getElementById('settings-btn');
 const settingsModal = document.getElementById('settings-modal');
 const closeModal = document.querySelector('.close-modal');
 const apiKeyInput = document.getElementById('api-key');
 const saveApiKeyBtn = document.getElementById('save-api-key');
 
-// Show/hide settings modal
-settingsBtn.addEventListener('click', () => {
-    settingsModal.style.display = 'block';
-    // Load existing API key
-    electronAPI.getApiKey().then(apiKey => {
-        if (apiKey) {
-            apiKeyInput.value = apiKey;
-        }
-    });
-});
-
+// Close modal handlers
 closeModal.addEventListener('click', () => {
     settingsModal.style.display = 'none';
 });
@@ -367,6 +356,11 @@ saveApiKeyBtn.addEventListener('click', async () => {
         if (success) {
             alert('API key saved successfully');
             settingsModal.style.display = 'none';
+            // If this was triggered by the checkbox, check it again
+            const chatGPTCheckbox = document.getElementById('use-chatgpt');
+            if (document.querySelector('.settings-message')) {
+                chatGPTCheckbox.checked = true;
+            }
         } else {
             alert('Failed to save API key');
         }
@@ -399,6 +393,8 @@ addNoteButton.addEventListener("click", async () => {
     const headerInput = document.getElementById("header-input");
     const bodyInput = document.getElementById("body-input");
     const useChatGPT = document.getElementById("use-chatgpt").checked;
+    const buttonContent = addNoteButton.querySelector('.button-content');
+    const buttonText = addNoteButton.querySelector('.button-text');
 
     const bodyValue = bodyInput.value.trim();
     if (!bodyValue) {
@@ -407,6 +403,15 @@ addNoteButton.addEventListener("click", async () => {
     }
 
     try {
+        // Disable button and show loading state
+        addNoteButton.disabled = true;
+        if (useChatGPT) {
+            buttonText.textContent = 'Processing with ChatGPT';
+            const spinner = document.createElement('span');
+            spinner.className = 'button-spinner';
+            buttonContent.appendChild(spinner);
+        }
+
         let headerValue = headerInput.value.trim();
         let content = bodyValue;
 
@@ -419,20 +424,17 @@ addNoteButton.addEventListener("click", async () => {
             headerValue = headerValue || getCurrentTimeStamp();
         }
 
-        // Remove any quotes from the title
-        headerValue = headerValue.replace(/['"]/g, '');
-
-        // Create a new section in JSON format
+        // Add the new section
         const newSection = {
             id: generateRandomId(),
             title: headerValue,
-            content: content
+            content: content,
+            timestamp: getCurrentTimeStamp()
         };
 
-        // Add the new section to the document
         currentDocumentData.sections.push(newSection);
-
-        // Update the view and save
+        
+        // Update view and save
         renderDocument(currentDocumentData);
         updateTOC();
         saveDocument();
@@ -440,11 +442,53 @@ addNoteButton.addEventListener("click", async () => {
         // Clear inputs
         headerInput.value = "";
         bodyInput.value = "";
-        document.getElementById("use-chatgpt").checked = false;
+        if (useChatGPT) {
+            document.getElementById("use-chatgpt").checked = false;
+        }
 
     } catch (error) {
-        console.error('Error creating note:', error);
-        alert('Error: ' + error.message);
+        console.error('Error adding note:', error);
+        alert('Error adding note: ' + error.message);
+    } finally {
+        // Reset button state
+        addNoteButton.disabled = false;
+        buttonText.textContent = 'Add Note';
+        const spinner = buttonContent.querySelector('.button-spinner');
+        if (spinner) {
+            spinner.remove();
+        }
+    }
+});
+
+document.getElementById("use-chatgpt").addEventListener("change", async (event) => {
+    if (event.target.checked) {
+        const apiKey = await electronAPI.getApiKey();
+        if (!apiKey) {
+            event.target.checked = false;  // Uncheck the box
+            settingsModal.style.display = "block";
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'settings-message';
+            messageDiv.textContent = 'This feature requires a ChatGPT API key. Please enter your API key below to use this functionality.';
+            
+            // Insert the message at the top of the settings-section
+            const settingsSection = document.querySelector('.settings-section');
+            settingsSection.insertBefore(messageDiv, settingsSection.firstChild);
+
+            // Remove the message when modal is closed
+            const removeMessage = () => {
+                const message = document.querySelector('.settings-message');
+                if (message) {
+                    message.remove();
+                }
+            };
+
+            closeModal.addEventListener('click', removeMessage, { once: true });
+            window.addEventListener('click', (e) => {
+                if (e.target === settingsModal) {
+                    removeMessage();
+                }
+            }, { once: true });
+        }
     }
 });
 
@@ -566,96 +610,53 @@ function undoDelete() {
     saveDocument();
 }
 
-document.getElementById("search-input").addEventListener("input", (event) => {
-    const searchTerm = event.target.value.toLowerCase();
-    const tocSection = document.getElementById("toc");
+const searchInput = document.getElementById('search-input');
 
-    // Clear any previous highlights and show all sections
-    document.querySelectorAll(".highlighted").forEach((el) => {
-        el.classList.remove("highlighted");
-    });
-    document.querySelectorAll(".search-highlight").forEach((el) => {
-        const parent = el.parentNode;
-        if (parent) {
-            parent.replaceChild(document.createTextNode(el.textContent || ''), el);
-        }
-    });
-    document.querySelectorAll(".markdown-section").forEach((el) => {
-        el.style.display = "block";
-    });
+searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        searchInput.value = '';
+        filterNotes('');  // Clear search and show all notes
+        searchInput.blur();  // Remove focus from search input
+    }
+});
 
-    // If the search term is empty, reset the TOC and return
-    if (searchTerm === "") {
+searchInput.addEventListener('input', (e) => {
+    filterNotes(e.target.value);
+});
+
+function filterNotes(searchTerm) {
+    const notes = document.querySelectorAll('.markdown-section');
+    searchTerm = searchTerm.toLowerCase();
+
+    if (!searchTerm) {
+        // Show all notes when search is empty
+        notes.forEach(note => {
+            note.style.display = 'block';
+        });
         updateTOC();
         return;
     }
 
-    // Filter sections based on the search term
-    tocSection.innerHTML = currentDocumentData.sections
-        .map((section) => {
-            const headerText = section.title;
-            const sectionContent = section.content;
-            const sectionElement = document.querySelector(`[data-section-id="${section.id}"]`);
+    notes.forEach((note, index) => {
+        const header = note.querySelector('h2').textContent.toLowerCase();
+        const content = note.querySelector('.markdown-body').textContent.toLowerCase();
+        const isMatch = content.includes(searchTerm) || header.includes(searchTerm);
+        
+        note.style.display = isMatch ? 'block' : 'none';
+    });
 
-            const matches = headerText.toLowerCase().includes(searchTerm) ||
-                          sectionContent.toLowerCase().includes(searchTerm);
-
-            // Show/hide the section based on match
-            if (sectionElement) {
-                sectionElement.style.display = matches ? "block" : "none";
-                if (matches) {
-                    sectionElement.classList.add("highlighted");
-                    
-                    // Highlight matching text in the section
-                    const contentElement = sectionElement.querySelector('.markdown-body');
-                    if (contentElement) {
-                        const regex = new RegExp(`(${searchTerm})`, 'gi');
-                        const walker = document.createTreeWalker(
-                            contentElement,
-                            NodeFilter.SHOW_TEXT,
-                            null,
-                            false
-                        );
-                        
-                        const textNodes = [];
-                        let node;
-                        while (node = walker.nextNode()) {
-                            if (node.textContent.toLowerCase().includes(searchTerm)) {
-                                textNodes.push(node);
-                            }
-                        }
-                        
-                        textNodes.forEach(node => {
-                            const newContent = node.textContent.replace(
-                                regex,
-                                '<span class="search-highlight">$1</span>'
-                            );
-                            const span = document.createElement('span');
-                            span.innerHTML = newContent;
-                            node.parentNode.replaceChild(span, node);
-                        });
-                    }
-                }
-            }
-
-            // Return TOC entry only if it matches
-            if (matches) {
-                const highlightedTitle = headerText.replace(
-                    new RegExp(`(${searchTerm})`, 'gi'),
-                    '<span class="search-highlight">$1</span>'
-                );
-                return `
-                    <div class="toc-item">
-                        <a href="#${sectionElement?.id || ''}">${highlightedTitle}</a>
-                        <button class="delete-button" onclick="deleteSection('${section.id}')">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>`;
-            }
-            return ""; // Exclude non-matching entries
-        })
-        .join("");
-});
+    const tocItems = document.querySelectorAll('.toc-item');
+    tocItems.forEach(item => {
+        const link = item.querySelector('a');
+        const sectionId = link.href.split('#')[1];
+        const section = document.getElementById(sectionId);
+        if (section && section.style.display === 'none') {
+            item.style.display = 'none';
+        } else {
+            item.style.display = 'block';
+        }
+    });
+}
 
 // Undo with Ctrl+Z or Cmd+Z
 document.addEventListener("keydown", (event) => {
@@ -697,4 +698,15 @@ function saveToFile() {
 // Add event listener for undo button
 undoButton.addEventListener("click", () => {
     undoDelete();
+});
+
+// Listen for show-settings event from the menu
+electronAPI.onShowSettings(() => {
+    settingsModal.style.display = "block";
+    // Load existing API key
+    electronAPI.getApiKey().then(apiKey => {
+        if (apiKey) {
+            apiKeyInput.value = apiKey;
+        }
+    });
 });
