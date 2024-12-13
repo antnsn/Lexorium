@@ -386,6 +386,7 @@ const generateRandomId = () => {
 function editSection(sectionId) {
     const section = document.getElementById(`section-${sectionId}`);
     const markdownBody = section.querySelector('.markdown-body');
+    const headerElement = section.querySelector('h2');
     
     // Get the section data from the current document
     const sectionData = currentDocumentData.sections.find(s => s.id === sectionId);
@@ -393,6 +394,7 @@ function editSection(sectionId) {
 
     // Create the edit HTML structure
     const editHtml = `
+        <input type="text" class="edit-header-input" value="${sectionData.title}" />
         <textarea class="edit-content-textarea">${sectionData.content}</textarea>
         <div class="edit-actions">
             <button class="save-button" onclick="saveSection('${sectionId}')">Save</button>
@@ -406,25 +408,24 @@ function editSection(sectionId) {
     // Add editing class for styling
     $(section).addClass('editing');
 
-    // Get the textarea and ensure no inline styles
+    // Initialize autosize after the textarea is in the DOM
     const textarea = $(markdownBody).find('.edit-content-textarea')[0];
-    textarea.removeAttribute('style');  // Remove any inline styles
-    
-    // Initialize autosize
     autosize(textarea);
 
-    // Focus the textarea
-    textarea.focus();
+    // Focus the header input
+    $(markdownBody).find('.edit-header-input').focus();
 }
 
 function saveSection(sectionId) {
     const section = $(`#section-${sectionId}`);
     const markdownBody = section.find('.markdown-body');
+    const headerInput = markdownBody.find('.edit-header-input');
     const textarea = markdownBody.find('.edit-content-textarea');
     
     // Update the section data
     const sectionIndex = currentDocumentData.sections.findIndex(s => s.id === sectionId);
     if (sectionIndex !== -1) {
+        currentDocumentData.sections[sectionIndex].title = headerInput.val();
         currentDocumentData.sections[sectionIndex].content = textarea.val();
     }
 

@@ -513,6 +513,27 @@ textarea:focus {
     display: none;
 }
 
+/* Header Input Styles */
+.edit-header-input {
+    width: 100%;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background: var(--input-background-light);
+    color: var(--font-color-light);
+    font-family: var(--font-family);
+    box-sizing: border-box;
+}
+
+.dark-mode .edit-header-input {
+    background: var(--input-background-dark);
+    color: var(--font-color-dark);
+    border-color: var(--border-color-dark);
+}
+
 /* Button Styling */
 button {
     min-width: fit-content;
@@ -1111,6 +1132,10 @@ body,
     padding: 1rem;
     background: var(--input-background-light);
     border-radius: var(--border-radius);
+}
+
+.markdown-section.editing .section-header{
+    display: none;
 }
 
 .dark-mode .edit-container {
