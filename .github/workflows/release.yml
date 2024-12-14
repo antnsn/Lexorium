@@ -17,9 +17,9 @@ jobs:
           - os: ubuntu-latest
             platform: linux
             arch: x64
-          - os: macos-latest
+          - os: macos-latest #macOS M1
             platform: darwin
-            arch: arm64
+            arch: arm64 
           - os: windows-latest
             platform: win32
             arch: x64
