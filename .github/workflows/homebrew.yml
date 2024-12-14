@@ -54,7 +54,7 @@ jobs:
 
       - name: Update Formula
         run: |
-          FORMULA_FILE="Formula/lexorium.rb"
+          FORMULA_FILE="Casks/lexorium.rb"
           
           # Update the URL field
           sed -i "s|url \".*\"|url \"https://github.com/antnsn/Lexorium/releases/download/v#{version}/Lexorium-darwin-x64-#{version}.zip\"|" $FORMULA_FILE
