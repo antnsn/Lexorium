@@ -1,4 +1,4 @@
-name: Update Winget
+name: Update WinGet
 
 on:
   workflow_dispatch:
@@ -6,17 +6,17 @@ on:
       version:
         description: 'Version tag (e.g., v3.0.2)'
         required: true
-      asset_name:
-        description: 'Asset name (e.g., LexoriumSetup.exe)'
-        required: true
+
 
 jobs:
-  publish:
-    runs-on: windows-latest
+  update:
+    name: Update Package
+    runs-on: ubuntu-latest
     steps:
-      - uses: vedantmgoyal2009/winget-releaser@v2
-        with:
-          identifier: antnsn.lexorium
-          version: ${{ inputs.version }}
-          release-tag: ${{ inputs.version }}
-          token: ${{ secrets.WINGET_TOKEN }}
+    - name: Update Packages
+      uses: michidk/winget-updater@v1
+      with:
+        komac-token: ${{ secrets.WINGET_TOKEN }}
+        identifier: "antnsn.lexorium"
+        repo: "antnsn/Lexoriumi"
+        URL: "https://github.com/antnsn/Lexorium/releases/download/{VERSION}/LexoriumSetup.exe"

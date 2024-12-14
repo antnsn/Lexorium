@@ -72,4 +72,4 @@ jobs:
         run: |
           VERSION=$(node -p "require('./app/package.json').version")
           gh workflow run homebrew.yml -f version="v$VERSION"
-          gh workflow run winget.yml -f version="v$VERSION" -f asset_name="LexoriumSetup.exe"
+          gh workflow run winget.yml -f version="v$VERSION"
