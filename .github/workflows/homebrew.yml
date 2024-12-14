@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: Checkout Homebrew Repository
         uses: actions/checkout@v3
+        with:
+          repository: antnsn/homebrew-lexorium
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
 
       - name: Determine Version
         id: vars
@@ -60,17 +63,17 @@ jobs:
           sed -i "s|url \".*\"|url \"https://github.com/antnsn/Lexorium/releases/download/v#{version}/Lexorium-darwin-x64-#{version}.zip\"|" $FORMULA_FILE
           
           # Update the version field
-          sed -i "s/version \".*\"/version \"$RELEASE_VERSION\"/" $FORMULA_FILE
+          sed -i "s/version \".*\"/version \"${RELEASE_VERSION#v}\"/" $FORMULA_FILE
           
           # Update the sha256 field
           sed -i "s/sha256 \".*\"/sha256 \"$SHA256\"/" $FORMULA_FILE
 
       - name: Commit and Push Changes
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           git config --global user.name "antnsn"
           git config --global user.email "antonsen.marius@gmail.com"
-          git add Formula/lexorium.rb
+          git add Casks/lexorium.rb
           git commit -m "Update Homebrew formula to version $RELEASE_VERSION"
           git push
