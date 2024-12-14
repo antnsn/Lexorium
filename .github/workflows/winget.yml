@@ -19,4 +19,4 @@ jobs:
         komac-token: ${{ secrets.WINGET_TOKEN }}
         identifier: "antnsn.lexorium"
         repo: "antnsn/Lexorium"
-        URL: "https://github.com/antnsn/Lexorium/releases/download/{VERSION}/LexoriumSetup.exe"
+        URL: "https://github.com/antnsn/Lexorium/releases/download/v{VERSION}/LexoriumSetup.exe"
