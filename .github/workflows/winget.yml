@@ -48,7 +48,6 @@ jobs:
               # Release trigger
               Write-Host "Debug: Raw Release Data:"
               Write-Host '${{ toJSON(github.event.release) }}'
-              
               $releaseData = '${{ toJSON(github.event.release) }}' | ConvertFrom-Json
               Write-Host "Debug: Release Assets Count = $($releaseData.assets.Length)"
               Write-Host "Available assets:"
@@ -57,7 +56,6 @@ jobs:
               } else {
                   Write-Host "No assets found in release data"
               }
-              
               $wingetRelevantAsset = $releaseData.assets | Where-Object { $_.name -match $env:REGEX } | Select-Object -First 1
           }
           
@@ -86,6 +84,7 @@ jobs:
           # Update the package in Winget
           & .\wingetcreate.exe update $wingetPackage `
             -s `
-            -v $version `
+            -t "${{ secrets.WINGET_TOKEN }}" `
             -u $wingetRelevantAsset.browser_download_url `
-            -t "${{ secrets.WINGET_TOKEN }}"
+            -v $version `
+            -r
