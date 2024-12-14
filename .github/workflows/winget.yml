@@ -1,0 +1,45 @@
+name: Publish to Winget
+
+on:
+  release:
+    types: [published]
+
+env:
+  REGEX: 'LexoriumSetup\.exe'
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - name: Publish Lexorium to Winget
+        run: |
+          # Convert the release assets to JSON for processing
+          $assets = '${{ toJSON(github.event.release.assets) }}' | ConvertFrom-Json
+          
+          # Find the LexoriumSetup.exe asset
+          $wingetRelevantAsset = $assets | Where-Object { $_.name -match $env:REGEX } | Select-Object -First 1
+          
+          if (-not $wingetRelevantAsset) {
+            throw "No matching asset found for regex $env:REGEX"
+          }
+          
+          # Extract the version number (e.g., 3.0.2) from the release tag
+          $version = '${{ github.event.release.tag_name }}'
+
+          # Winget package name (must match the ID registered with Winget)
+          $wingetPackage = "antnsn.lexorium"
+
+          # Log details for debugging
+          Write-Host "Detected Winget package: $wingetPackage"
+          Write-Host "Detected version: $version"
+          Write-Host "Asset URL: $($wingetRelevantAsset.browser_download_url)"
+          
+          # Download WingetCreate tool
+          & curl.exe -JLO https://aka.ms/wingetcreate/latest
+          
+          # Update the package in Winget
+          & .\wingetcreate.exe update $wingetPackage `
+            -s `
+            -v $version `
+            -u $wingetRelevantAsset.browser_download_url `
+            -t "${{ secrets.WINGET_TOKEN }}"
