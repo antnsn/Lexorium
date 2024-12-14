@@ -44,25 +44,26 @@ jobs:
         run: |
           echo "Release Version: $RELEASE_VERSION"
           echo "Asset URL: $ASSET_URL"
+          curl -I "$ASSET_URL"
 
       - name: Download Release Asset
         run: |
           echo "Downloading from: $ASSET_URL"
-          curl -L "$ASSET_URL" -o Lexorium-darwin-x64-${RELEASE_VERSION#v}.zip
-          ls -l Lexorium-darwin-x64-${RELEASE_VERSION#v}.zip
+          curl -L "$ASSET_URL" -o "release.zip"
+          ls -l "release.zip"
 
       - name: Verify Downloaded File
         run: |
           echo "File size:"
-          ls -lh Lexorium-darwin-x64-${RELEASE_VERSION#v}.zip
+          ls -lh "release.zip"
           echo "First few bytes (hex):"
-          head -c 32 Lexorium-darwin-x64-${RELEASE_VERSION#v}.zip | xxd
+          head -c 32 "release.zip" | xxd
 
       - name: Calculate SHA-256 Checksum
         id: checksum
         run: |
-          echo "Calculating SHA for file: Lexorium-darwin-x64-${RELEASE_VERSION#v}.zip"
-          sha256sum Lexorium-darwin-x64-${RELEASE_VERSION#v}.zip | tee sha256.txt
+          echo "Calculating SHA for downloaded file"
+          sha256sum "release.zip" | tee sha256.txt
           echo "SHA256=$(cat sha256.txt | awk '{ print $1 }')" >> $GITHUB_ENV
 
       - name: Update Formula
