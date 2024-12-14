@@ -25,21 +25,53 @@ jobs:
     steps:
       - name: Publish Lexorium to Winget
         run: |
-          # Convert the release assets to JSON for processing
-          $assets = '${{ toJSON(github.event.release.assets) }}' | ConvertFrom-Json
-          Write-Host "Available assets:"
-          $assets | ForEach-Object { Write-Host $_.name }
+          Write-Host "Debug: GitHub Event Name = ${{ github.event_name }}"
+          Write-Host "Debug: Manual Version Input = ${{ github.event.inputs.version }}"
+          Write-Host "Debug: Manual Asset Name Input = ${{ github.event.inputs.asset_name }}"
           
-          # Find the setup exe asset
-          $wingetRelevantAsset = $assets | Where-Object { $_.name -match $env:REGEX } | Select-Object -First 1
-          
-          if (-not $wingetRelevantAsset) {
-            throw "No matching asset found for regex $env:REGEX. Please ensure LexoriumSetup.exe is included in the release."
+          # Handle both automatic and manual triggers
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+              # Manual trigger
+              $version = '${{ github.event.inputs.version }}'
+              $assetName = '${{ github.event.inputs.asset_name }}'
+              if ([string]::IsNullOrEmpty($assetName)) {
+                  $assetName = 'LexoriumSetup.exe'
+              }
+              
+              # Construct the asset URL directly
+              $browserDownloadUrl = "https://github.com/antnsn/Lexorium/releases/download/$version/$assetName"
+              $wingetRelevantAsset = @{
+                  name = $assetName
+                  browser_download_url = $browserDownloadUrl
+              }
+          } else {
+              # Release trigger
+              Write-Host "Debug: Raw Release Data:"
+              Write-Host '${{ toJSON(github.event.release) }}'
+              
+              $releaseData = '${{ toJSON(github.event.release) }}' | ConvertFrom-Json
+              Write-Host "Debug: Release Assets Count = $($releaseData.assets.Length)"
+              Write-Host "Available assets:"
+              if ($releaseData.assets) {
+                  $releaseData.assets | ForEach-Object { Write-Host $_.name }
+              } else {
+                  Write-Host "No assets found in release data"
+              }
+              
+              $wingetRelevantAsset = $releaseData.assets | Where-Object { $_.name -match $env:REGEX } | Select-Object -First 1
           }
           
-          # Extract the version number from the release tag (remove 'v' prefix if present)
-          $version = '${{ github.event.release.tag_name }}'.TrimStart('v')
-
+          if (-not $wingetRelevantAsset) {
+              throw "No matching asset found. Please ensure LexoriumSetup.exe is included in the release or provided as input."
+          }
+          
+          # Extract version (remove 'v' prefix if present)
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+              $version = $version.TrimStart('v')
+          } else {
+              $version = '${{ github.event.release.tag_name }}'.TrimStart('v')
+          }
+          
           # Winget package name (must match the ID registered with Winget)
           $wingetPackage = "antnsn.lexorium"
 
