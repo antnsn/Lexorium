@@ -1,6 +1,6 @@
 {
   "name": "Lexorium",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "A magical text editor for notes and code snippets",
   "main": "main.js",
   "scripts": {
