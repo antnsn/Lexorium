@@ -19,25 +19,45 @@ jobs:
       - name: Checkout Homebrew Repository
         uses: actions/checkout@v3
 
-      - name: Set Variables
+      - name: Determine Version
         id: vars
         run: |
-          echo "RELEASE_VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
-          echo "ASSET_URL=$(echo '${{ toJSON(github.event.release.assets) }}' | jq -r '.[] | select(.name == "LexoriumSetup.exe").browser_download_url')" >> $GITHUB_ENV
+          # Use the release tag name if available, otherwise use the input version
+          if [ -n "${{ github.event.release.tag_name }}" ]; then
+            VERSION=${{ github.event.release.tag_name }}
+          elif [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION=${{ github.event.inputs.version }}
+          else
+            echo "Error: No release tag or input version provided." >&2
+            exit 1
+          fi
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+
+          # Construct the asset URL
+          ASSET_URL="https://github.com/antnsn/Lexorium/releases/download/$VERSION/Lexorium-darwin-x64-${VERSION#v}.zip"
+          echo "ASSET_URL=$ASSET_URL" >> $GITHUB_ENV
+
+      - name: Debug Variables
+        run: |
+          echo "Release Version: $RELEASE_VERSION"
+          echo "Asset URL: $ASSET_URL"
 
       - name: Download Release Asset
         run: |
-          curl -L $ASSET_URL -o LexoriumSetup.exe
+          curl -L "$ASSET_URL" -o Lexorium-darwin-x64-${RELEASE_VERSION#v}.zip
 
       - name: Calculate SHA-256 Checksum
         id: checksum
         run: |
-          sha256sum LexoriumSetup.exe | awk '{ print $1 }' > sha256.txt
+          sha256sum Lexorium-darwin-x64-${RELEASE_VERSION#v}.zip | awk '{ print $1 }' > sha256.txt
           echo "SHA256=$(cat sha256.txt)" >> $GITHUB_ENV
 
       - name: Update Formula
         run: |
           FORMULA_FILE="Formula/lexorium.rb"
+          
+          # Update the URL field
+          sed -i "s|url \".*\"|url \"https://github.com/antnsn/Lexorium/releases/download/v#{version}/Lexorium-darwin-x64-#{version}.zip\"|" $FORMULA_FILE
           
           # Update the version field
           sed -i "s/version \".*\"/version \"$RELEASE_VERSION\"/" $FORMULA_FILE
