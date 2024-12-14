@@ -1,90 +1,22 @@
-name: Publish to Winget
+name: Update Winget
 
 on:
-  release:
-    types: [published]
-
-  # Allow manual triggering
   workflow_dispatch:
     inputs:
       version:
-        description: "Specify the version number (optional, e.g. v3.0.2 )"
-        required: false
-        default: ""
+        description: 'Version tag (e.g., v3.0.2)'
+        required: true
       asset_name:
-        description: "Specify the asset name (optional, e.g., LexoriumSetup.exe)"
-        required: false
-        default: ""
-
-env:
-  REGEX: 'LexoriumSetup\.exe'
+        description: 'Asset name (e.g., LexoriumSetup.exe)'
+        required: true
 
 jobs:
   publish:
     runs-on: windows-latest
     steps:
-      - name: Publish Lexorium to Winget
-        run: |
-          Write-Host "Debug: GitHub Event Name = ${{ github.event_name }}"
-          Write-Host "Debug: Manual Version Input = ${{ github.event.inputs.version }}"
-          Write-Host "Debug: Manual Asset Name Input = ${{ github.event.inputs.asset_name }}"
-          
-          # Handle both automatic and manual triggers
-          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
-              # Manual trigger
-              $version = '${{ github.event.inputs.version }}'
-              $assetName = '${{ github.event.inputs.asset_name }}'
-              if ([string]::IsNullOrEmpty($assetName)) {
-                  $assetName = 'LexoriumSetup.exe'
-              }
-              
-              # Construct the asset URL directly
-              $browserDownloadUrl = "https://github.com/antnsn/Lexorium/releases/download/$version/$assetName"
-              $wingetRelevantAsset = @{
-                  name = $assetName
-                  browser_download_url = $browserDownloadUrl
-              }
-          } else {
-              # Release trigger
-              Write-Host "Debug: Raw Release Data:"
-              Write-Host '${{ toJSON(github.event.release) }}'
-              $releaseData = '${{ toJSON(github.event.release) }}' | ConvertFrom-Json
-              Write-Host "Debug: Release Assets Count = $($releaseData.assets.Length)"
-              Write-Host "Available assets:"
-              if ($releaseData.assets) {
-                  $releaseData.assets | ForEach-Object { Write-Host $_.name }
-              } else {
-                  Write-Host "No assets found in release data"
-              }
-              $wingetRelevantAsset = $releaseData.assets | Where-Object { $_.name -match $env:REGEX } | Select-Object -First 1
-          }
-          
-          if (-not $wingetRelevantAsset) {
-              throw "No matching asset found. Please ensure LexoriumSetup.exe is included in the release or provided as input."
-          }
-          
-          # Extract version (remove 'v' prefix if present)
-          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
-              $version = $version.TrimStart('v')
-          } else {
-              $version = '${{ github.event.release.tag_name }}'.TrimStart('v')
-          }
-          
-          # Winget package name (must match the ID registered with Winget)
-          $wingetPackage = "antnsn.lexorium"
-
-          # Log details for debugging
-          Write-Host "Detected Winget package: $wingetPackage"
-          Write-Host "Detected version: $version"
-          Write-Host "Asset URL: $($wingetRelevantAsset.browser_download_url)"
-          
-          # Download WingetCreate tool
-          & curl.exe -JLO https://aka.ms/wingetcreate/latest
-          
-          # Update the package in Winget
-          & .\wingetcreate.exe update $wingetPackage `
-            -s `
-            -t "${{ secrets.WINGET_TOKEN }}" `
-            -u $wingetRelevantAsset.browser_download_url `
-            -v $version `
-            -r
+      - uses: vedantmgoyal2009/winget-releaser@v2
+        with:
+          identifier: antnsn.Lexorium
+          version: ${{ inputs.version }}
+          release-tag: ${{ inputs.version }}
+          token: ${{ secrets.WINGET_TOKEN }}
