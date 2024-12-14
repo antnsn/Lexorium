@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Specify the version number (optional)"
+        description: "Specify the version number (optional, e.g. v3.0.2 )"
         required: false
         default: ""
       asset_name:
@@ -27,16 +27,18 @@ jobs:
         run: |
           # Convert the release assets to JSON for processing
           $assets = '${{ toJSON(github.event.release.assets) }}' | ConvertFrom-Json
+          Write-Host "Available assets:"
+          $assets | ForEach-Object { Write-Host $_.name }
           
-          # Find the LexoriumSetup.exe asset
+          # Find the setup exe asset
           $wingetRelevantAsset = $assets | Where-Object { $_.name -match $env:REGEX } | Select-Object -First 1
           
           if (-not $wingetRelevantAsset) {
-            throw "No matching asset found for regex $env:REGEX"
+            throw "No matching asset found for regex $env:REGEX. Please ensure LexoriumSetup.exe is included in the release."
           }
           
-          # Extract the version number (e.g., 3.0.2) from the release tag
-          $version = '${{ github.event.release.tag_name }}'
+          # Extract the version number from the release tag (remove 'v' prefix if present)
+          $version = '${{ github.event.release.tag_name }}'.TrimStart('v')
 
           # Winget package name (must match the ID registered with Winget)
           $wingetPackage = "antnsn.lexorium"
