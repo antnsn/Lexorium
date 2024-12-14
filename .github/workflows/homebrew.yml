@@ -37,7 +37,7 @@ jobs:
           echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
 
           # Construct the asset URL
-          ASSET_URL="https://github.com/antnsn/Lexorium/releases/download/$VERSION/Lexorium-darwin-x64-${VERSION#v}.zip"
+          ASSET_URL="https://github.com/antnsn/Lexorium/releases/download/$VERSION/Lexorium-darwin-arm64-${VERSION#v}.zip"
           echo "ASSET_URL=$ASSET_URL" >> $GITHUB_ENV
 
       - name: Debug Variables
@@ -71,7 +71,7 @@ jobs:
           FORMULA_FILE="Casks/lexorium.rb"
           
           # Update the URL field
-          sed -i "s|url \".*\"|url \"https://github.com/antnsn/Lexorium/releases/download/v#{version}/Lexorium-darwin-x64-#{version}.zip\"|" $FORMULA_FILE
+          sed -i "s|url \".*\"|url \"https://github.com/antnsn/Lexorium/releases/download/v#{version}/Lexorium-darwin-arm64-#{version}.zip\"|" $FORMULA_FILE
           
           # Update the version field
           sed -i "s/version \".*\"/version \"${RELEASE_VERSION#v}\"/" $FORMULA_FILE
