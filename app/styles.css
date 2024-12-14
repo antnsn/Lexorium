@@ -47,6 +47,7 @@ body {
     height: 100vh;
     overflow: hidden;
     transition: background-color var(--transition-duration), color var(--transition-duration);
+    
 }
 
 .dark-mode body {
