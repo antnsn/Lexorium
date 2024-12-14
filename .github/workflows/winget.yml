@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: vedantmgoyal2009/winget-releaser@v2
         with:
-          identifier: antnsn.Lexorium
+          identifier: antnsn.lexorium
           version: ${{ inputs.version }}
           release-tag: ${{ inputs.version }}
           token: ${{ secrets.WINGET_TOKEN }}
