@@ -32,7 +32,9 @@
   "config": {
     "forge": {
       "packagerConfig": {
-        "icon": "assets/icon"
+        "icon": "assets/icon",
+        "arch": ["x64", "arm64"],
+        "platform": ["win32", "darwin", "linux"]
       },
       "makers": [
         {
@@ -40,7 +42,8 @@
           "config": {
             "name": "lexorium",
             "setupIcon": "assets/icon.ico",
-            "setupExe": "LexoriumSetup.exe"
+            "setupExe": "LexoriumSetup.exe",
+            "arch": ["x64"]
           }
         },
         {
@@ -48,7 +51,10 @@
           "platforms": [
             "darwin",
             "linux"
-          ]
+          ],
+          "config": {
+            "arch": ["arm64"]
+          }
         },
         {
           "name": "@electron-forge/maker-deb",
