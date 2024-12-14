@@ -85,7 +85,7 @@ jobs:
           
           # Update the package in Winget
           & .\wingetcreate.exe update $wingetPackage `
-            --submit `
-            --version $version `
-            --url $wingetRelevantAsset.browser_download_url `
-            --token "${{ secrets.WINGET_TOKEN }}"
+            -s `
+            -v $version `
+            -u $wingetRelevantAsset.browser_download_url `
+            -t "${{ secrets.WINGET_TOKEN }}"
