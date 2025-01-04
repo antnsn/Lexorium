@@ -60,8 +60,9 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.os == 'windows-latest'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: pwsh
         run: |
-          VERSION=$(node -p "require('./app/package.json').version")
+          $VERSION = (node -p "require('./app/package.json').version")
           gh workflow run winget.yml -f version="v$VERSION"
 
       - name: Trigger Homebrew Workflow
