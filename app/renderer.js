@@ -8,12 +8,20 @@ let undoStack = []; // Stack to keep track of deleted sections for undo
 let markdownContent = "";
 let documentView = document.getElementById("document-view");
 let tocSection = document.getElementById("toc");
+let sortOrderAscending = false; // Default to newest first
 
 // Function Definitions
 function renderDocument(documentData) {
     let html = '';
     
-    documentData.sections.forEach((section, index) => {
+    // Sort sections by timestamp
+    const sortedSections = [...documentData.sections].sort((a, b) => {
+        const timeA = parseCustomDate(a.timestamp);
+        const timeB = parseCustomDate(b.timestamp);
+        return sortOrderAscending ? timeA - timeB : timeB - timeA;
+    });
+    
+    sortedSections.forEach((section, index) => {
         html += `
             <div id="section-${section.id}" class="markdown-section">
                 <div class="section-header">
@@ -376,7 +384,13 @@ const undoButton = document.getElementById("undo");
 
 const getCurrentTimeStamp = () => {
     const now = new Date();
-    return `${now.getDate()}.${now.getMonth() + 1}.${now.getFullYear()} - ${now.getHours()}:${now.getMinutes()}`;
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    
+    return `${day}.${month}.${year} - ${hours}:${minutes}`;
 };
 
 const generateRandomId = () => {
@@ -691,4 +705,54 @@ document.getElementById("use-chatgpt").addEventListener("change", async (event) 
             }, { once: true });
         }
     }
+});
+
+// Add event listener for sort button
+const sortButton = document.getElementById('sort-order');
+sortButton.addEventListener('click', () => {
+    sortOrderAscending = !sortOrderAscending;
+    // Update sort button icon
+    const icon = sortButton.querySelector('i');
+    icon.className = sortOrderAscending ? 'fas fa-sort-amount-up' : 'fas fa-sort-amount-down';
+    // Re-render the document with new sort order
+    renderDocument(currentDocumentData);
+    updateTOC();
+});
+
+// Add event listener for undo button
+undoButton.addEventListener("click", () => {
+    undoDelete();
+});
+
+// Function to parse our custom date format
+function parseCustomDate(dateStr) {
+    if (!dateStr) return new Date(0);
+    
+    // Check if it's already in ISO format
+    if (dateStr.includes('T')) {
+        return new Date(dateStr);
+    }
+    
+    // Parse our custom format "DD.MM.YYYY - HH:mm"
+    const [datePart, timePart] = dateStr.split(' - ');
+    const [day, month, year] = datePart.split('.');
+    const [hours, minutes] = timePart.split(':');
+    
+    return new Date(year, month - 1, day, hours, minutes);
+}
+
+// Add event listeners for Ctrl/Cmd + Shift + Enter to submit note
+document.getElementById('body-input').addEventListener('keydown', async (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'Enter') {
+        event.preventDefault();
+        const addNoteButton = document.getElementById('add-note');
+        if (!addNoteButton.disabled) {
+            addNoteButton.click();
+        }
+    }
+});
+
+// Add event listener for undo button
+undoButton.addEventListener("click", () => {
+    undoDelete();
 });
