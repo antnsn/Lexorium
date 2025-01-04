@@ -786,10 +786,12 @@ pre:hover .copy-button {
 .edit-button, .delete-button, .button {
     background-color: var(--scrollbar-track-light);
     border: none;
-    color: #666;
+    color: var(--text-color);
+    font-size: 1.2em;
     cursor: pointer;
     padding: 5px;
-    transition: color 0.3s;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
 .dark-mode .edit-button, .delete-button .button{
@@ -1218,4 +1220,74 @@ body,
 /* Hide section controls during edit mode */
 .markdown-section.editing .section-controls {
     display: none;
+}
+
+.toc-controls {
+    display: flex;
+    gap: 25px;
+    margin-bottom: 15px;
+}
+
+.toc-controls #search-input {
+    flex-grow: 1;
+}
+
+/* .search-container {
+    flex: 1;
+    display: flex;
+}
+
+.sort-container {
+    display: flex;
+    align-items: center;
+} */
+
+#search-input {
+    width: 100%;
+    
+    /* padding: 8px 12px; */
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background-color: var(--input-background-light);
+    color: var(--font-color-light);
+    font-family: var(--font-family);
+}
+
+.dark-mode #search-input {
+    border-color: var(--border-color-dark);
+    background-color: var(--input-background-dark);
+    color: var(--font-color-dark);
+}
+
+#sort-order {
+    width: 33px;
+    height: 33px;
+    padding: 0;
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--border-radius);
+    background-color: var(--input-background-light);
+    color: var(--font-color-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dark-mode #sort-order {
+    border-color: var(--border-color-dark);
+    background-color: var(--input-background-dark);
+    color: var(--font-color-dark);
+}
+
+#sort-order:hover {
+    background-color: var(--button-hover-background-color);
+    color: var(--button-text-color);
+}
+
+#sort-order i {
+    transition: transform 0.3s ease;
+}
+
+#sort-order.ascending i {
+    transform: rotate(180deg);
 }
