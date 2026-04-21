@@ -2,73 +2,88 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 
   pull_request:
     branches:
       - main
 
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             platform: linux
-            arch: x64
           - os: macos-latest
-            platform: darwin
-            arch: x64
+            platform: macos
           - os: windows-latest
-            platform: win32
-            arch: x64
+            platform: windows
+
     runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
 
-      - name: Cache node_modules
-        uses: actions/cache@v3
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
         with:
-          path: app/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('app/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          workspaces: app/src-tauri -> target
 
-      - name: Install dependencies
-        run: npm install
-        working-directory: app
-
-      - name: Build
-        run: npx electron-forge make --arch=${{ matrix.arch }} --platform=${{ matrix.platform }}
-        working-directory: app
-
-      - name: Publish to GitHub
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-forge publish --arch=${{ matrix.arch }} --platform=${{ matrix.platform }}
-        working-directory: app
-
-      - name: Trigger Winget Workflow
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.os == 'windows-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: pwsh
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
         run: |
-          $VERSION = (node -p "require('./app/package.json').version")
-          gh workflow run winget.yml -f version="v$VERSION"
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: app
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: app
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Lexorium ${{ github.ref_name }}'
+          releaseBody: 'See the assets below to download and install this version.'
+          releaseDraft: true
+          prerelease: false
 
       - name: Trigger Homebrew Workflow
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.os == 'macos-latest'
+        if: startsWith(github.ref, 'refs/tags/v') && matrix.platform == 'macos'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(node -p "require('./app/package.json').version")
-          gh workflow run homebrew.yml -f version="v$VERSION"          
+          gh workflow run homebrew.yml -f version="${{ github.ref_name }}"
+
+      - name: Trigger WinGet Workflow
+        if: startsWith(github.ref, 'refs/tags/v') && matrix.platform == 'windows'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run winget.yml -f version="${{ github.ref_name }}"

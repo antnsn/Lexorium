@@ -4,19 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag (e.g., v3.0.2)'
+        description: 'Version tag (e.g. v4.0.0)'
         required: true
-
 
 jobs:
   update:
     name: Update Package
     runs-on: ubuntu-latest
     steps:
-    - name: Update Packages
-      uses: michidk/winget-updater@v1
-      with:
-        komac-token: ${{ secrets.WINGET_TOKEN }}
-        identifier: "antnsn.lexorium"
-        repo: "antnsn/Lexorium"
-        URL: "https://github.com/antnsn/Lexorium/releases/download/v{VERSION}/LexoriumSetup.exe"
+      - name: Update Packages
+        uses: michidk/winget-updater@v1
+        with:
+          komac-token: ${{ secrets.WINGET_TOKEN }}
+          identifier: 'antnsn.lexorium'
+          repo: 'antnsn/Lexorium'
+          url: 'https://github.com/antnsn/Lexorium/releases/download/${{ github.event.inputs.version }}/Lexorium_${{ github.event.inputs.version }}_x64-setup.exe'

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lexorium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script type="module" crossorigin src="/assets/index-BFcXkhFA.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-RqAbNVCI.css">
+  </head>
+  <body>
+    <script>
+      // Apply dark mode immediately to prevent flash of light mode
+      (function() {
+        var s = localStorage.getItem('lexorium-dark-mode');
+        var dark = s !== null ? s === 'true' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.body.classList.add('dark-mode');
+      })();
+    </script>
+    <div id="app"></div>
+  </body>
+</html>

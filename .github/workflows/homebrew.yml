@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Specify the version number ex. (optional, e.g. v3.0.2 )"
+        description: 'Version tag (e.g. v4.0.0)'
         required: false
-        default: ""
+        default: ''
 
 jobs:
   update-formula:
@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout Homebrew Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: antnsn/homebrew-lexorium
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
@@ -25,7 +25,6 @@ jobs:
       - name: Determine Version
         id: vars
         run: |
-          # Use the release tag name if available, otherwise use the input version
           if [ -n "${{ github.event.release.tag_name }}" ]; then
             VERSION=${{ github.event.release.tag_name }}
           elif [ -n "${{ github.event.inputs.version }}" ]; then
@@ -36,47 +35,28 @@ jobs:
           fi
           echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
 
-          # Construct the asset URL
-          ASSET_URL="https://github.com/antnsn/Lexorium/releases/download/$VERSION/Lexorium-darwin-x64-${VERSION#v}.zip"
+          # Tauri produces .dmg for macOS
+          ASSET_URL="https://github.com/antnsn/Lexorium/releases/download/$VERSION/Lexorium_${VERSION#v}_aarch64.dmg"
           echo "ASSET_URL=$ASSET_URL" >> $GITHUB_ENV
-
-      - name: Debug Variables
-        run: |
-          echo "Release Version: $RELEASE_VERSION"
-          echo "Asset URL: $ASSET_URL"
-          curl -I "$ASSET_URL"
 
       - name: Download Release Asset
         run: |
           echo "Downloading from: $ASSET_URL"
-          curl -L "$ASSET_URL" -o "release.zip"
-          ls -l "release.zip"
-
-      - name: Verify Downloaded File
-        run: |
-          echo "File size:"
-          ls -lh "release.zip"
-          echo "First few bytes (hex):"
-          head -c 32 "release.zip" | xxd
+          curl -fSL "$ASSET_URL" -o "release.dmg"
+          ls -lh "release.dmg"
 
       - name: Calculate SHA-256 Checksum
-        id: checksum
         run: |
-          echo "Calculating SHA for downloaded file"
-          sha256sum "release.zip" | tee sha256.txt
-          echo "SHA256=$(cat sha256.txt | awk '{ print $1 }')" >> $GITHUB_ENV
+          SHA256=$(sha256sum "release.dmg" | awk '{ print $1 }')
+          echo "SHA256=$SHA256" >> $GITHUB_ENV
+          echo "Checksum: $SHA256"
 
       - name: Update Formula
         run: |
           FORMULA_FILE="Casks/lexorium.rb"
-          
-          # Update the URL field
-          sed -i "s|url \".*\"|url \"https://github.com/antnsn/Lexorium/releases/download/v#{version}/Lexorium-darwin-x64-#{version}.zip\"|" $FORMULA_FILE
-          
-          # Update the version field
+
+          sed -i "s|url \".*\"|url \"https://github.com/antnsn/Lexorium/releases/download/v#{version}/Lexorium_#{version}_aarch64.dmg\"|" $FORMULA_FILE
           sed -i "s/version \".*\"/version \"${RELEASE_VERSION#v}\"/" $FORMULA_FILE
-          
-          # Update the sha256 field
           sed -i "s/sha256 \".*\"/sha256 \"$SHA256\"/" $FORMULA_FILE
 
       - name: Commit and Push Changes

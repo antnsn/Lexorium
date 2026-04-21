@@ -1,77 +1,28 @@
 {
-  "name": "Lexorium",
-  "version": "3.0.4",
+  "name": "lexorium",
+  "version": "4.0.0",
   "description": "A magical text editor for notes and code snippets",
-  "main": "main.js",
+  "type": "module",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
   },
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.1",
     "highlight.js": "^11.5.0",
     "marked": "^14.0.0",
-    "openai": "^4.76.1",
-    "zip": "^1.2.0"
+    "marked-highlight": "^2.2.4"
   },
   "author": "Marius Antonsen",
-  "license": "ISC",
+  "license": "AGPL-3.0-only",
   "devDependencies": {
-    "@electron-forge/cli": "^7.4.0",
-    "@electron-forge/maker-deb": "^7.4.0",
-    "@electron-forge/maker-rpm": "^7.4.0",
-    "@electron-forge/maker-squirrel": "^7.4.0",
-    "@electron-forge/maker-zip": "^7.4.0",
-    "@electron-forge/plugin-auto-unpack-natives": "^7.4.0",
-    "@electron-forge/plugin-fuses": "^7.4.0",
-    "@electron-forge/publisher-github": "^7.4.0",
-    "@electron/fuses": "^1.8.0",
-    "electron": "^32.1.2"
-  },
-  "config": {
-    "forge": {
-      "packagerConfig": {
-        "icon": "assets/icon"
-      },
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "lexorium",
-            "setupIcon": "assets/icon.ico",
-            "setupExe": "LexoriumSetup.exe"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin",
-            "linux"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {}
-        }
-      ],
-      "publishers": [
-        {
-          "name": "@electron-forge/publisher-github",
-          "config": {
-            "repository": {
-              "owner": "antnsn",
-              "name": "lexorium"
-            },
-            "prerelease": false,
-            "draft": false
-          }
-        }
-      ]
-    }
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/cli": "^2.0.0",
+    "@tauri-apps/plugin-dialog": "^2.0.0",
+    "@tauri-apps/plugin-shell": "^2.0.0",
+    "svelte": "^5.55.4",
+    "vite": "^8.0.9"
   }
 }
