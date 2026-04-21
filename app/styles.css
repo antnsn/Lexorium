@@ -8,13 +8,18 @@
   --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "Fira Code", "SF Mono", "Cascadia Code", "Consolas", monospace;
 
-  --bg-primary: #FAF8F5;
-  --bg-secondary: #F0EDE8;
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #2E3235;
   --bg-elevated: #FFFFFF;
-  --bg-input: #FFFFFF;
-  --text-primary: #2C2825;
-  --text-secondary: #7A7470;
-  --text-tertiary: #A8A29E;
+  --bg-input: #F4F5F6;
+  --text-primary: #1A1D20;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  --sidebar-text: #D1D5DB;
+  --sidebar-text-secondary: #9CA3AF;
+  --sidebar-text-tertiary: #6B7280;
+  --sidebar-input-bg: #3A3D41;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
   --accent: #D4654A;
   --accent-hover: #C05638;
   --accent-subtle: rgba(212, 101, 74, 0.08);
@@ -26,7 +31,7 @@
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
   --link: #5B7E9E;
-  --code-bg: #F5F2ED;
+  --code-bg: #F4F5F6;
   --scrollbar-thumb: rgba(0, 0, 0, 0.15);
   --scrollbar-track: transparent;
 
@@ -44,13 +49,18 @@
 }
 
 body.dark-mode {
-  --bg-primary: #1E1D1C;
-  --bg-secondary: #252423;
-  --bg-elevated: #2E2D2B;
-  --bg-input: #353432;
-  --text-primary: #E8E4DF;
-  --text-secondary: #9B9590;
-  --text-tertiary: #6B6560;
+  --bg-primary: #2E3235;
+  --bg-secondary: #23272A;
+  --bg-elevated: #363A3E;
+  --bg-input: #3A3D41;
+  --text-primary: #E2E5E9;
+  --text-secondary: #9CA3AF;
+  --text-tertiary: #6B7280;
+  --sidebar-text: #D1D5DB;
+  --sidebar-text-secondary: #9CA3AF;
+  --sidebar-text-tertiary: #6B7280;
+  --sidebar-input-bg: #363A3E;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
   --accent-hover: #E0775E;
   --accent-subtle: rgba(212, 101, 74, 0.12);
   --border: rgba(255, 255, 255, 0.06);
@@ -60,7 +70,7 @@ body.dark-mode {
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
   --link: #7EB5D6;
-  --code-bg: #262524;
+  --code-bg: #23272A;
   --scrollbar-thumb: rgba(255, 255, 255, 0.12);
 }
 
@@ -114,13 +124,14 @@ h2 {
   padding: var(--space-lg) var(--space-md);
   transition: background-color var(--transition);
   overflow: hidden;
+  color: var(--sidebar-text);
 }
 
 #logo {
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--sidebar-text);
   letter-spacing: -0.02em;
   margin: 0;
   padding: 0;
@@ -141,7 +152,7 @@ h2 {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--text-tertiary);
+  color: var(--sidebar-text-tertiary);
   margin: 0 0 var(--space-sm) 0;
 }
 
@@ -157,9 +168,9 @@ h2 {
   padding: var(--space-sm) var(--space-md);
   font-size: 13px;
   font-family: var(--font-body);
-  color: var(--text-primary);
-  background: var(--bg-input);
-  border: 1px solid var(--border);
+  color: var(--sidebar-text);
+  background: var(--sidebar-input-bg);
+  border: 1px solid var(--sidebar-border);
   border-radius: var(--radius-md);
   outline: none;
   transition: border-color var(--transition), background-color var(--transition);
@@ -170,7 +181,7 @@ h2 {
 }
 
 #search-input::placeholder {
-  color: var(--text-tertiary);
+  color: var(--sidebar-text-tertiary);
 }
 
 #sort-order {
@@ -180,10 +191,10 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-input);
-  border: 1px solid var(--border);
+  background: var(--sidebar-input-bg);
+  border: 1px solid var(--sidebar-border);
   border-radius: var(--radius-md);
-  color: var(--text-secondary);
+  color: var(--sidebar-text-secondary);
   cursor: pointer;
   font-size: 12px;
   transition: all var(--transition);
@@ -214,7 +225,7 @@ h2 {
   margin-bottom: 2px;
   border-radius: var(--radius-sm);
   text-decoration: none;
-  color: var(--text-primary);
+  color: var(--sidebar-text);
   font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
@@ -236,7 +247,7 @@ h2 {
 
 #undo-container {
   padding-top: var(--space-md);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--sidebar-border);
   display: flex;
   justify-content: center;
 }
@@ -245,7 +256,7 @@ h2 {
 #undo {
   font-size: 12px;
   font-family: var(--font-body);
-  color: var(--text-tertiary);
+  color: var(--sidebar-text-tertiary);
   background: none;
   border: none;
   cursor: pointer;
@@ -518,6 +529,7 @@ pre:hover .copy-button {
   transition: background-color var(--transition);
   overflow-y: auto;
   overflow-x: hidden;
+  color: var(--sidebar-text);
 }
 
 #input-section h2 {
@@ -526,7 +538,7 @@ pre:hover .copy-button {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--text-tertiary);
+  color: var(--sidebar-text-tertiary);
   margin: 0 0 var(--space-md) 0;
 }
 
@@ -536,9 +548,9 @@ pre:hover .copy-button {
   font-size: 15px;
   font-family: var(--font-display);
   font-weight: 600;
-  color: var(--text-primary);
-  background: var(--bg-input);
-  border: 1px solid var(--border);
+  color: var(--sidebar-text);
+  background: var(--sidebar-input-bg);
+  border: 1px solid var(--sidebar-border);
   border-radius: var(--radius-md);
   outline: none;
   margin-bottom: var(--space-sm);
@@ -550,7 +562,7 @@ pre:hover .copy-button {
 }
 
 #header-input::placeholder {
-  color: var(--text-tertiary);
+  color: var(--sidebar-text-tertiary);
   font-weight: 400;
 }
 
@@ -563,9 +575,9 @@ pre:hover .copy-button {
   font-size: 14px;
   font-family: var(--font-body);
   line-height: 1.6;
-  color: var(--text-primary);
-  background: var(--bg-input);
-  border: 1px solid var(--border);
+  color: var(--sidebar-text);
+  background: var(--sidebar-input-bg);
+  border: 1px solid var(--sidebar-border);
   border-radius: var(--radius-md);
   outline: none;
   resize: none;
@@ -578,7 +590,7 @@ pre:hover .copy-button {
 }
 
 #body-input::placeholder {
-  color: var(--text-tertiary);
+  color: var(--sidebar-text-tertiary);
 }
 
 textarea {
@@ -609,7 +621,7 @@ textarea:focus {
   align-items: center;
   gap: var(--space-sm);
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--sidebar-text-secondary);
   cursor: pointer;
   user-select: none;
 }
@@ -974,7 +986,7 @@ button {
 
 /* ---------- TOC Links ---------- */
 #toc-section a {
-  color: var(--text-primary);
+  color: var(--sidebar-text);
   text-decoration: none;
   font-weight: 500;
 }
