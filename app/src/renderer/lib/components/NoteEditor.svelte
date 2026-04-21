@@ -93,12 +93,12 @@
   <div class="edit-actions">
     <button class="cancel-btn" on:click={() => dispatch('cancel')} disabled={processing}>Cancel</button>
     <button class="enhance-btn" on:click={enhanceWithAI} disabled={processing}>
-      <span class="button-content">
-        <span>{processing ? 'Enhancing...' : '✦ Enhance with AI'}</span>
-        {#if processing}
-          <span class="spinner"></span>
-        {/if}
-      </span>
+      {#if processing}
+        <span class="enhance-spinner"></span>
+        Enhancing…
+      {:else}
+        ✦ Enhance with AI
+      {/if}
     </button>
     <button class="save-btn" on:click={save} disabled={processing}>Save</button>
   </div>
@@ -204,6 +204,9 @@
     cursor: pointer;
     transition: all var(--transition);
     font-family: var(--font-body);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
   }
   .enhance-btn:hover {
     background: var(--accent);
@@ -212,15 +215,19 @@
   .enhance-btn:disabled { opacity: 0.6; cursor: not-allowed; }
   .enhance-btn:disabled:hover { background: var(--accent-subtle); color: var(--accent); }
 
-  .enhance-btn .spinner {
-    border-color: rgba(0,0,0,0.1);
+  .enhance-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0,0,0,0.1);
+    border-radius: 50%;
     border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
   }
 
-  .button-content {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   .ai-message {
