@@ -12,10 +12,15 @@ jobs:
     name: Update Package
     runs-on: ubuntu-latest
     steps:
+      - name: Determine version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          echo "RAW_VERSION=${VERSION#v}" >> $GITHUB_ENV
+
       - name: Update Packages
         uses: michidk/winget-updater@v1
         with:
           komac-token: ${{ secrets.WINGET_TOKEN }}
           identifier: 'antnsn.lexorium'
           repo: 'antnsn/Lexorium'
-          url: 'https://github.com/antnsn/Lexorium/releases/download/${{ github.event.inputs.version }}/Lexorium_${{ github.event.inputs.version }}_x64-setup.exe'
+          url: 'https://github.com/antnsn/Lexorium/releases/download/${{ github.event.inputs.version }}/Lexorium_${{ env.RAW_VERSION }}_x64-setup.exe'
