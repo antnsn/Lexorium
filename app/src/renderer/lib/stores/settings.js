@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { getAIConfig, setAIConfig } from '../services/platform.js';
 
 function createSettingsStore() {
   const { subscribe, set, update } = writable({
@@ -13,7 +14,7 @@ function createSettingsStore() {
 
     async load() {
       try {
-        const config = await window.electronAPI.getAIConfig();
+        const config = await getAIConfig();
         set(config);
       } catch (e) {
         console.error('Failed to load AI config:', e);
@@ -22,11 +23,12 @@ function createSettingsStore() {
 
     async save(provider, model, apiKey) {
       try {
-        const ok = await window.electronAPI.setAIConfig({ provider, model, apiKey });
-        if (ok) {
+        const ok = await setAIConfig({ provider, model, apiKey });
+        if (ok !== false) {
           update((s) => ({ ...s, provider, model, apiKey }));
+          return true;
         }
-        return ok;
+        return false;
       } catch (e) {
         console.error('Failed to save AI config:', e);
         return false;
@@ -34,7 +36,7 @@ function createSettingsStore() {
     },
 
     async hasApiKey() {
-      const config = await window.electronAPI.getAIConfig();
+      const config = await getAIConfig();
       return !!config?.apiKey;
     },
   };

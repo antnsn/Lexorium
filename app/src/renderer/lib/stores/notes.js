@@ -70,6 +70,12 @@ function createNotesStore() {
       const doc = typeof data === 'string' ? JSON.parse(data) : data;
       if (!doc.version) doc.version = '1.0';
       if (!doc.sections) doc.sections = [];
+      // Ensure every section has a tags array (extract from content if missing)
+      for (const section of doc.sections) {
+        if (!section.tags) {
+          section.tags = extractTags(section.content);
+        }
+      }
       set(doc);
       filePath.set(path || '');
       undoStack.set([]);
@@ -82,11 +88,13 @@ function createNotesStore() {
     },
 
     addSection(title, content, tags = []) {
+      const extracted = extractTags(content);
+      const merged = [...new Set([...tags, ...extracted])];
       const section = {
         id: genId(),
         title: title || timestamp(),
         content,
-        tags,
+        tags: merged,
         timestamp: timestamp(),
       };
       update((doc) => {
@@ -96,14 +104,16 @@ function createNotesStore() {
       return section;
     },
 
-    updateSection(id, title, content) {
+    updateSection(id, title, content, tags) {
       update((doc) => {
         const idx = doc.sections.findIndex((s) => s.id === id);
         if (idx !== -1) {
           doc.sections[idx].title = title;
           doc.sections[idx].content = content;
-          // Re-extract tags
-          doc.sections[idx].tags = extractTags(content);
+          // Merge explicit tags with any extracted from content
+          const extracted = extractTags(content);
+          const merged = [...new Set([...(tags || []), ...extracted])];
+          doc.sections[idx].tags = merged;
         }
         return doc;
       });

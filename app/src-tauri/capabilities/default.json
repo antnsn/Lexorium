@@ -1,0 +1,16 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capabilities for Lexorium",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "core:menu:default",
+    "core:event:default",
+    "core:window:allow-start-dragging",
+    "dialog:default",
+    "shell:allow-open"
+  ]
+}

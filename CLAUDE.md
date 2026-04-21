@@ -1,19 +1,15 @@
 # CLAUDE.md — Lexorium
 
-> This file provides context for Claude (Anthropic) when working on the Lexorium codebase.
-> It covers architecture, critical bugs, conventions, build commands, and strategic guidance.
+> Context for AI assistants working on the Lexorium codebase.
+> Covers architecture, conventions, build commands, known issues, and design principles.
 
 ---
 
 ## What Is Lexorium?
 
-Lexorium is a Markdown-powered note and code snippet manager. It stores documents as JSON files containing titled sections with Markdown content. The repository houses **two separate applications**:
+Lexorium is a Markdown-powered note and code snippet manager built with **Tauri 2 + Svelte 5**. It stores documents as portable JSON files containing titled sections with Markdown content. Cross-platform: macOS, Windows, Linux.
 
-1. **Electron app** (`app/`) — The production application (v3.0.4). Cross-platform (macOS, Windows, Linux). Built with vanilla JavaScript, jQuery, and CDN-loaded libraries. Shipped via GitHub Releases, Homebrew cask, and WinGet.
-
-2. **macOS native app** (`macos-app/`) — An experimental SwiftUI rewrite. Uses SQLite (GRDB) instead of JSON files, Keychain for secrets, and Metal for animations. Not yet shipped.
-
-These two apps share a repository but share **zero code or data layer**. The Electron app's JSON format can be imported into the native app via `JSONImporter`.
+The repository also contains a **legacy Electron app** (v3.0.4, `app/*.js`) and an **experimental SwiftUI native app** (`macos-app/`). Both are superseded by the Tauri 2 rewrite. **All new work happens in the Tauri + Svelte codebase.**
 
 ---
 
@@ -22,50 +18,94 @@ These two apps share a repository but share **zero code or data layer**. The Ele
 ### Build & Run
 
 ```bash
-# Electron app
-cd app && npm install && npm start
-
-# macOS native app
-cd macos-app && swift build && swift test
+cd app && npm install
+npx tauri dev          # Dev mode with HMR
+npx tauri build        # Production build
 ```
 
-### Key Paths
+### Key Paths — Tauri + Svelte App
+
+| What | Path |
+|------|------|
+| **Frontend entry** | `app/src/renderer/App.svelte` |
+| **Design tokens / CSS** | `app/src/renderer/app.css` |
+| **Platform abstraction** | `app/src/renderer/lib/services/platform.js` |
+| **Markdown renderer** | `app/src/renderer/lib/services/markdown.js` |
+| **Svelte stores** | `app/src/renderer/lib/stores/` (notes, tags, ui, settings) |
+| **UI components** | `app/src/renderer/lib/components/` |
+| **Rust backend entry** | `app/src-tauri/src/lib.rs` |
+| **Rust commands** | `app/src-tauri/src/commands/` (document, ai, config) |
+| **Native menus** | `app/src-tauri/src/menu.rs` |
+| **Tauri config** | `app/src-tauri/tauri.conf.json` |
+| **Capabilities/permissions** | `app/src-tauri/capabilities/default.json` |
+| **Vite config** | `app/vite.config.js` |
+| **Package manifest** | `app/package.json` |
+
+### Key Paths — Legacy (reference only)
 
 | What | Path |
 |------|------|
 | Electron main process | `app/main.js` |
 | Electron UI (monolith) | `app/renderer.js` |
 | Electron styles | `app/styles.css` |
-| Electron preload/IPC bridge | `app/preload.js` |
-| Electron app menu | `app/menu.js` |
-| Electron AI integration | `app/chatgpt.js`, `app/ai-provider.js` |
-| Electron config helper | `app/utils.js` |
-| Native app entry point | `macos-app/Sources/AppExec/AppMain.swift` |
-| Native app main view | `macos-app/Sources/AppUI/MainContentView.swift` |
-| Native database layer | `macos-app/Sources/StorageKit/DatabaseManager.swift` |
-| Native data model | `macos-app/Sources/StorageKit/Note.swift` |
-| CI/CD release pipeline | `.github/workflows/release.yml` |
+| Electron AI provider | `app/ai-provider.js`, `app/chatgpt.js` |
+| Native macOS app | `macos-app/` |
 
 ---
 
-## Electron App — Deep Architecture
+## Architecture
 
-### How It Works
+### Frontend (Svelte 5)
 
-The Electron app uses a **three-column layout**: left TOC sidebar, center document view, right input panel. Documents are JSON files containing an array of sections, each with Markdown content that gets rendered via `marked.parse()` with `highlight.js` for code blocks.
+**Two-panel layout**: persistent dark sidebar (note list, tags, navigation) + main content area (toolbar, note cards, compose panel). Titlebar overlay mode for Bear-like appearance (traffic lights float over sidebar).
+
+**Component tree:**
+```
+App.svelte
+├── Sidebar.svelte          — Logo, nav, note list, tag tree
+│   └── TagTree.svelte      — Hierarchical tag browser
+├── Toolbar.svelte          — Search bar, compose/sort buttons
+├── ComposePanel.svelte     — New note input (title + markdown + tags)
+│   └── TagInput.svelte     — Tag autocomplete input
+├── NoteCard.svelte         — Rendered markdown note with edit/delete
+├── NoteEditor.svelte       — Inline section editor
+├── SettingsModal.svelte    — AI config, theme, preferences
+└── EmptyState.svelte       — "No notes" placeholder
+```
+
+**Stores** (Svelte writable stores):
+- `notes.js` — Document state, sections, undo stack, file path
+- `tags.js` — Tag tree, selected tag, filtered notes, all tags list
+- `ui.js` — Dark mode, modal visibility, compose state, processing flag
+- `settings.js` — App settings (persisted via Rust `get_app_config`/`set_app_config`)
+
+**Services:**
+- `platform.js` — ALL backend communication. Wraps Tauri `invoke()` and `listen()`. Components never import Tauri APIs directly. Falls back to no-ops in browser dev mode.
+- `markdown.js` — Renders markdown via `marked` v14 + `marked-highlight` + `highlight.js`.
+
+### Backend (Rust / Tauri 2)
+
+**Commands** (invoked from frontend via `platform.js`):
+- `document.rs` — `open_document`, `save_document`, `get_recent_files`, `get_last_opened_file`, `save_last_opened_file`
+- `ai.rs` — `ai_process`, `get_ai_config`, `set_ai_config` (stub — needs reqwest implementation)
+- `config.rs` — `get_app_config`, `set_app_config`
+
+**Menu** (`menu.rs`):
+- Native macOS menus: Lexorium, File, Edit, View, Help
+- Custom items emit events to frontend: `file-new`, `file-open-request`, `file-save-request`, `dark-mode-toggle`, `toggle-sidebar`, `show-settings`
+- `PredefinedMenuItem` items (undo, copy, paste) have native behavior — they don't fire `on_menu_event`
+
+**Config/data storage:**
+- App config: `~/.config/com.antnsn.lexorium/`
+- Last opened file: `~/.config/com.antnsn.lexorium/last_opened.txt`
+- Documents: user-chosen JSON files (portable, cloud-sync friendly)
 
 ### IPC Flow
 
 ```
-main.js ←IPC→ preload.js (contextBridge) ←→ renderer.js
+Svelte component → platform.js → Tauri invoke() → Rust command → filesystem
+                                  Tauri listen()  ← Rust emit() ← menu event
 ```
-
-`preload.js` exposes `window.electronAPI` with:
-- `openFile()` — shows open file dialog, returns `{ filePath, data }`
-- `saveFile(data)` — shows save dialog, writes JSON
-- `saveToPath(filePath, data)` — writes JSON to specific path
-- `getConfig()` / `setConfig(config)` — reads/writes config.json
-- `onFileOpened(callback)` — listens for files opened from menu/recent
 
 ### Data Format
 
@@ -75,166 +115,101 @@ main.js ←IPC→ preload.js (contextBridge) ←→ renderer.js
   "sections": [
     {
       "id": 1,
-      "title": "Title",
-      "content": "Markdown text with ```code```",
-      "timestamp": "2024-01-15T10:30:00.000Z"
+      "title": "Section Title",
+      "content": "Markdown text with ```code blocks```",
+      "timestamp": "2024-01-15T10:30:00.000Z",
+      "tags": ["#javascript", "#patterns"]
     }
   ]
 }
 ```
 
-- Section `id` is an **integer** (auto-incremented via `Math.max(...ids) + 1`)
-- `content` is raw Markdown text (rendered at display time)
-- `timestamp` is ISO 8601
-- See `testNote.json` in repo root for a working example
-
-### State Management
-
-All state is global variables in `renderer.js`:
-
-```javascript
-let currentDocument = null;   // The loaded JSON document
-let currentFilePath = null;   // Path to the open file
-```
-
-There is no state management pattern — any function can read/write these globals. When modifying sections, you must update `currentDocument.sections` and then call `renderDocument(currentDocument)` to re-render.
-
-### Theming
-
-- CSS custom properties in `:root` (light) and `.dark-mode` (dark)
-- One Dark / One Light color palette
-- Toggle: `document.body.classList.toggle('dark-mode')`
-- Persisted in config.json
-
-### AI Integration (`chatgpt.js` + `ai-provider.js`)
-
-- Multi-provider support: **OpenAI**, **Anthropic**, and **OpenRouter**
-- Provider abstraction in `ai-provider.js` with factory pattern
-- `chatgpt.js` orchestrates config, client lifecycle, and message routing
-- Each provider stores its own API key and model in `config.json`
-- OpenAI and OpenRouter use the `openai` npm SDK; Anthropic uses `@anthropic-ai/sdk`
-- OpenRouter reuses OpenAI SDK with custom `baseURL` and attribution headers
-- Backward compatible: legacy `openaiApiKey` config field still works
-- API keys stored in `config.json` (plaintext — this is a pre-existing security issue)
-- Settings modal allows switching providers, models, and API keys
+- JSON files — portable, cloud-sync friendly (OneDrive, Dropbox, iCloud)
+- Section `id` is an integer (auto-incremented)
+- `content` is raw Markdown (rendered at display time)
+- `tags` is an optional string array
+- `testNote.json` in repo root is a working test document
 
 ---
 
-## macOS Native App — Deep Architecture
+## Critical Knowledge
 
-### SPM Module Layout
+### Tauri 2 `isTauri()` Detection
 
+```javascript
+// CORRECT for Tauri 2:
+const isTauri = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+
+// WRONG (Tauri v1 — will silently no-op all backend calls):
+const isTauri = () => '__TAURI__' in window;
 ```
-Package.swift
-├── AppExec      → App entry, window configuration
-├── AppUI        → SwiftUI views (MainContentView, SettingsView)
-├── StorageKit   → DatabaseManager, Note model, JSONImporter, Keychain
-└── RendererKit  → MetalView (animated gradient background)
+
+Tauri v2 uses `window.__TAURI_INTERNALS__` for IPC. `window.__TAURI__` only exists when `app.withGlobalTauri: true` is set in config. The `@tauri-apps/api` package uses `__TAURI_INTERNALS__` directly.
+
+### Tauri 2 Permissions
+
+Capabilities live in `app/src-tauri/capabilities/default.json`. Current permissions:
+```json
+["core:default", "core:menu:default", "core:event:default",
+ "core:window:allow-start-dragging", "dialog:default", "shell:allow-open"]
 ```
+- `core:window:allow-start-dragging` — Required for `data-tauri-drag-region` window dragging
+- New Tauri features may need additional permissions added here
 
-### Database (GRDB + SQLite)
+### Titlebar Overlay (Bear-like)
 
-- WAL journal mode for concurrent reads
-- FTS5 full-text search index on `title` and `content`
-- Auto-migrations at startup
-- Thread-safe singleton `DatabaseManager`
+- `"titleBarStyle": "Overlay"` + `"hiddenTitle": true` in `tauri.conf.json`
+- Content needs ~28px top padding for traffic light buttons
+- `data-tauri-drag-region` attribute + `-webkit-app-region: drag` CSS enables window dragging
+- Interactive elements inside drag regions need `-webkit-app-region: no-drag`
 
-### Key Differences from Electron App
+### Markdown Rendering
 
-| Aspect | Electron | Native |
-|--------|----------|--------|
-| Data storage | JSON files | SQLite (GRDB) |
-| Note IDs | Integers | UUID strings |
-| API key storage | Plaintext JSON | Keychain |
-| Search | Client-side string match | FTS5 full-text search |
-| Offline support | ❌ (CDN deps) | ✅ |
-| CI/CD | ✅ | ❌ |
-| AI integration | Working (gpt-4) | Stub (print statement) |
-| Delete notes | ✅ (with confirmation) | ❌ (not implemented) |
+- `marked` v14 removed the `highlight` option from `setOptions()` — use `marked-highlight` extension
+- `marked.use(markedHighlight({ highlight(code, lang) { ... } }))` is the correct pattern
+- hljs token CSS is defined in `app.css` (not an imported theme) for full dark/light control
+
+### Event System
+
+- Rust: `app_handle.emit("event-name", payload)` broadcasts to all webviews
+- Frontend: `listen("event-name", callback)` via `@tauri-apps/api/event`
+- Payload must implement `Serialize + Clone` — string payloads work reliably
+- All event listeners are registered in `App.svelte`'s `onMount`
 
 ---
 
-## Critical Bugs — Fix These First
+## Code Conventions
 
-These are real bugs I found during code analysis, not style opinions.
+### Svelte / JavaScript
 
-### 1. `loadDocument()` Ignores File Path (renderer.js ~L88)
+- **Svelte 5** with `createEventDispatcher` for component events
+- ES modules (`import`/`export`), no CommonJS
+- `const` / `let` (never `var`), semicolons required
+- All backend calls go through `platform.js` — never import Tauri APIs in components
+- Stores in `lib/stores/`, services in `lib/services/`, components in `lib/components/`
+- Reactive declarations: `$: derived = expression;`
 
-```javascript
-// BUG: Opens file dialog instead of reading the provided filePath
-async function loadDocument(filePath) {
-  const result = await window.electronAPI.openFile(); // ← ignores filePath!
-  // Should use filePath when provided, dialog only when filePath is null
-}
-```
+### Rust
 
-**Impact**: Recent files menu, "file-opened" IPC events, and any programmatic file loading don't work. They all trigger a file dialog instead of loading the specified file.
-
-### 2. Triple Undo Event Listener (renderer.js L592, L723, L756)
-
-The undo button gets three identical `addEventListener('click', ...)` calls. On click, the undo action fires three times. Remove the duplicates at L723 and L756.
-
-### 3. `filterNotes()` Selector Bug (renderer.js ~L543)
-
-```javascript
-// BUG: TOC items ARE <a> elements, they don't CONTAIN <a> elements
-items.forEach(item => {
-  const text = item.querySelector('a')?.textContent; // ← returns null
-  // Should be: const text = item.textContent;
-});
-```
-
-**Impact**: Search/filter functionality is broken — it matches nothing.
-
-### 4. CSS `.dark-mode body` Never Matches (styles.css)
-
-```css
-/* BUG: dark-mode is applied TO body, not a parent of body */
-.dark-mode body { ... }  /* ← never matches */
-/* Should be: body.dark-mode { ... } */
-```
-
-### 5. Duplicate CSS Blocks
-
-`.input-controls` and `.copy-button` are each defined twice with different properties. The later definition silently wins. Consolidate into single blocks.
-
-### 6. Dead Code
-
-- `updateDocumentView()` (renderer.js ~L182-261) — alternate render path, never called
-- `saveToFile()` (renderer.js ~L562-589) — duplicates `saveDocument()`, never called
-- `macos-app/LXNative/` — legacy Xcode project stub, superseded by SPM package
-
----
-
-## Code Conventions to Follow
-
-### JavaScript (Electron App)
-
-- Vanilla JavaScript — no framework, no build step
-- `const` / `let` (never `var`)
-- Functions at module level (no classes)
-- `window.electronAPI.*` for all IPC
-- `marked.parse()` for Markdown → HTML
-- `hljs.highlightElement(el)` for code highlighting
-- Template literals for HTML construction
-- Mix of jQuery `$()` and vanilla `document.querySelector()` (prefer vanilla when adding new code)
-- Semicolons present but inconsistent — **use semicolons**
-- No TypeScript (yet)
-
-### Swift (macOS Native App)
-
-- SwiftUI declarative patterns
-- `@Observable` macro for state objects
-- GRDB record protocol conformance for database models
-- `async`/`await` for database operations
-- Module boundaries enforced by SPM targets
+- Commands are `#[tauri::command]` async functions in `src/commands/`
+- Use `log::info!()` for debugging (visible in terminal during `tauri dev`)
+- Menu creation in `menu.rs`, registered in `lib.rs` `setup()`
+- All commands registered in `lib.rs` `invoke_handler`
 
 ### CSS
 
-- Custom properties for theming (`--bg-primary`, `--text-primary`, etc.)
-- Dark mode: `.dark-mode` class on `<body>`, override variables
-- No CSS framework, no preprocessor
-- Desktop-only — no responsive/mobile breakpoints
+- Custom properties (design tokens) in `:root`, dark overrides in `body.dark-mode`
+- Three font stacks: `--font-display` (Lora serif), `--font-body` (system sans), `--font-mono` (Fira Code)
+- Spacing scale: `--space-xs` (4px) through `--space-2xl` (48px)
+- Component styles scoped in Svelte `<style>` blocks
+- Global styles in `app.css` (markdown body, code highlighting, scrollbars)
+- Desktop-only — no responsive/mobile breakpoints needed
+
+### Git
+
+- Main development branch: `svelte-tauri-rewrite`
+- Feature branches off `svelte-tauri-rewrite`
+- Commit messages: conventional commits style
 
 ---
 
@@ -242,136 +217,60 @@ items.forEach(item => {
 
 ### Before You Change Anything
 
-1. **Identify which app** — Electron (`app/`) or native (`macos-app/`)
-2. **Check known bugs** — your change might interact with existing issues listed above
-3. **Test both themes** — toggle dark/light mode to verify styling
-4. **Use `testNote.json`** — load it as a test document
+1. **Work in `app/`** — all new development is Tauri + Svelte
+2. **Test both themes** — toggle dark/light via View → Dark Mode (Cmd+Shift+D)
+3. **Use `testNote.json`** — load via File → Open for testing
+4. **Check the dev server** — `npx tauri dev` in `app/`
 
 ### Gotchas
 
-- `currentDocument` is the global state — always update it before calling `renderDocument()`
-- Section IDs are integers, not UUIDs — new sections use `Math.max(...existingIds) + 1`
-- `marked.parse()` → `innerHTML` is an XSS vector — no sanitization exists
-- No auto-save — users must Cmd+S / Ctrl+S
-- All `window.electronAPI` methods return Promises (use `await`)
-- CDN-loaded libs (jQuery, marked, hljs, Font Awesome, autosize) won't be available offline
-- The Electron app has **no tests** — verify changes manually
-- `marked.setOptions()` is called twice in renderer.js — consolidate to one call
+- Svelte component styles are scoped — global styles must go in `app.css`
+- `platform.js` functions return `null` when running without Tauri backend (browser-only dev)
+- `tauri.conf.json` changes trigger a full Rust rebuild (~10s)
+- Svelte/JS/CSS changes use Vite HMR (instant)
+- The `marked-highlight` extension is required for syntax highlighting in marked v14+
+- Section IDs are integers, not UUIDs
+- No auto-save — users Cmd+S / Ctrl+S or use File → Save
+- Tags are optional per section — handle `section.tags` as potentially undefined
 
 ### Adding New Features
 
-When adding a feature to the **Electron app**:
-1. Add IPC channel to `main.js` (handler) + `preload.js` (bridge) if needed
-2. Add UI logic to `renderer.js` (or a new module if you're refactoring)
-3. Add styles to `styles.css` with both light and dark theme variants
-4. Test with `npm start`
-
-When adding a feature to the **native app**:
-1. Determine the correct module (AppUI for views, StorageKit for data)
-2. Follow the existing GRDB patterns for data operations
-3. Add tests in `Tests/StorageKitTests/` for data layer changes
-4. Test with `swift build && swift test`
+1. **Frontend-only**: Add component in `lib/components/`, wire into `App.svelte`
+2. **Needs backend**: Add Rust command in `src/commands/`, register in `lib.rs`, add wrapper in `platform.js`
+3. **New Tauri permission**: Add to `capabilities/default.json`
+4. **New menu item**: Add to `menu.rs`, add event listener in `App.svelte`
+5. **Always**: Test both themes, check for Svelte compile warnings
 
 ---
 
-## Strategic Recommendations
+## Known Issues & TODOs
 
-### React or Not?
+### Current Issues
 
-**The current app doesn't need React.** The problems are architectural, not framework-related:
+- `app/src/renderer/lib/services/electron.js` — dead file from Electron era, should be deleted
+- Unused CSS selectors in `Sidebar.svelte`: `.undo-container`, `.undo-btn`, `.undo-btn:hover`
+- TagTree a11y: `<span>` with click handler needs ARIA role and keyboard handler
+- `struct Document` in `document.rs` is never constructed (warning)
+- Debug `console.log` statements in `platform.js` `listen()` — remove before release
+- Dark mode preference not persisted (resets on restart)
+- AI commands in Rust are stubs — need `reqwest` HTTP implementation
 
-- `renderer.js` is a 758-line monolith — it needs modularization
-- jQuery is used for maybe 10 operations — it can be removed
-- CDN dependencies need to be bundled locally
+### Legacy Files (safe to delete)
 
-**Recommended improvement path:**
+- `app/main.js`, `app/renderer.js`, `app/styles.css`, `app/index.html` — old Electron app
+- `app/preload.js`, `app/menu.js`, `app/chatgpt.js`, `app/ai-provider.js`, `app/utils.js`, `app/config.js`
+- `app/forge.config.js` — Electron Forge config
+- `app/src/renderer/lib/services/electron.js` — dead Electron service
+- `macos-app/` — experimental SwiftUI app (superseded)
 
-1. **Split renderer.js into ES modules** (state.js, toc.js, editor.js, search.js, etc.)
-2. **Replace jQuery with vanilla JS** (reduce 87KB dependency)
-3. **Bundle CDN deps via npm + esbuild** (enables offline mode)
-4. **Add TypeScript incrementally** (start with data model types)
-5. **Consider Preact/Svelte only if** the UI grows significantly (tabs, split panes, drag-and-drop)
+### Roadmap
 
-React is overkill for a note-taking app of this size. If a framework becomes necessary, **Preact** (3KB, React-compatible API) or **Svelte** (compile-time, zero runtime) are better fits for Electron.
-
-### High-Priority Improvements
-
-1. **Fix the bugs** listed above — especially `loadDocument()`, `filterNotes()`, and duplicate listeners
-2. **Remove dead code** — `updateDocumentView()`, `saveToFile()`, `LXNative/` directory
-3. **Security** — migrate API key to Electron's `safeStorage` API
-4. **Offline support** — bundle all CDN dependencies via npm
-5. **Code quality** — add ESLint + Prettier, add basic tests
-6. **CSP** — add `Content-Security-Policy` meta tag to index.html
-
-### Native App Decisions Needed
-
-- **Is the native app the future, or is Electron the long-term platform?** This determines where to invest effort.
-- **If keeping both**: establish shared data format documentation and ensure JSONImporter stays in sync.
-- **If going native-only**: prioritize implementing delete, AI integration, and CI/CD before sunsetting Electron.
-- **Metal background**: The animated gradient renders at 60 FPS. Consider whether this is worth the GPU overhead for a note-taking app, or if a static gradient would suffice.
-
----
-
-## CI/CD Reference
-
-### `release.yml` — Electron Release
-
-- Triggers on push to `main`
-- Matrix build: `ubuntu-latest`, `macos-latest`, `windows-latest`
-- `npm install` → `npm run make` → upload artifacts → create GitHub Release
-- Downstream: triggers `homebrew.yml` and `winget.yml`
-
-### `homebrew.yml` — Homebrew Cask Update
-
-- Updates formula in `antnsn/homebrew-lexorium` repository
-- Uses `HOMEBREW_TAP_TOKEN` secret
-
-### `winget.yml` — WinGet Update
-
-- Uses `michidk/winget-updater@latest`
-- Uses `WINGET_TOKEN` secret
-
-### Missing CI
-
-- No CI for the macOS native app
-- No automated tests in CI (none exist for Electron app)
-- No linting in CI
-
----
-
-## File-by-File Reference
-
-### Electron App
-
-| File | LOC | Responsibility |
-|------|-----|----------------|
-| `main.js` | 185 | Window creation, IPC handlers, file I/O, app lifecycle |
-| `renderer.js` | 758 | ALL UI logic — rendering, editing, search, AI settings, events |
-| `styles.css` | 1293 | ALL styles — layout, components, theming, animations |
-| `index.html` | 122 | HTML shell — 3-column layout, settings modal, CDN script tags |
-| `menu.js` | 259 | Application menu (File, Edit, View, Window, Help) |
-| `chatgpt.js` | 210 | Multi-provider AI orchestration, config, system prompts |
-| `ai-provider.js` | 100 | Provider factory — OpenAI, Anthropic, OpenRouter adapters |
-| `utils.js` | 101 | Config persistence, recent files, temp file cleanup |
-| `preload.js` | 26 | Context bridge exposing `window.electronAPI` |
-| `config.js` | 15 | DEBUG flag object |
-| `forge.config.js` | 29 | Electron Forge packaging configuration |
-
-### macOS Native App
-
-| File | LOC | Responsibility |
-|------|-----|----------------|
-| `Package.swift` | 60 | SPM manifest — 4 modules, dependencies |
-| `AppMain.swift` | 23 | App entry point, window configuration |
-| `ContentView.swift` | 76 | Simple sidebar + detail view (AppExec) |
-| `MainContentView.swift` | 458 | Full editor with preview/edit, ToC, code blocks |
-| `SettingsView.swift` | 42 | API key management via Keychain |
-| `AppEnvironment.swift` | 32 | Observable app state container |
-| `DatabaseManager.swift` | 123 | GRDB singleton, migrations, CRUD, FTS5 |
-| `Note.swift` | 23 | Note model with GRDB conformance |
-| `JSONImporter.swift` | 39 | Electron JSON → SQLite import |
-| `Keychain.swift` | 40 | Keychain read/write helper |
-| `MetalView.swift` | 117 | Animated gradient Metal renderer |
+1. **AI integration** — Port `ai-provider.js` logic to Rust with `reqwest` for HTTP calls
+2. **Persist preferences** — Dark mode, sidebar state, window size saved to config
+3. **Recent files** — File → Recent submenu using `get_recent_files` command
+4. **Code block copy button** — Add copy button to rendered code blocks in NoteCard
+5. **Polish** — Vendor Font Awesome, code-split highlight.js, clean up dead files
+6. **CI/CD** — Update GitHub Actions for Tauri builds (macOS, Windows, Linux)
 
 ---
 
@@ -379,7 +278,7 @@ React is overkill for a note-taking app of this size. If a framework becomes nec
 
 ### Users
 
-Individual developers who want a beautiful, organized way to manage code snippets and technical notes. They reach for Lexorium when they need to capture, categorize, and retrieve code patterns, solutions, and documentation fragments across projects. These are developers who care about their tools — they want something that feels crafted, not just functional.
+Individual developers who want a beautiful, organized way to manage code snippets and technical notes. They reach for Lexorium when they need to capture, categorize, and retrieve code patterns, solutions, and documentation fragments across projects. These are developers who care about their tools — they want something that feels crafted, not just functional. They value portable data (JSON files that sync via OneDrive/Dropbox/iCloud).
 
 ### Brand Personality
 
@@ -391,30 +290,41 @@ Lexorium should feel like a precision instrument made by someone who deeply unde
 
 ### Aesthetic Direction
 
-**Primary reference**: [Bear](https://bear.app) — elegant typography, warm atmosphere, beautiful Markdown rendering, and a sense of calm sophistication. Bear proves that a note app can feel genuinely premium.
+**Primary reference**: [Bear](https://bear.app) — elegant typography, warm atmosphere, beautiful Markdown rendering, and a sense of calm sophistication. Bear proves that a note app can feel genuinely premium. Specifically: the persistent dark sidebar, the titlebar overlay with traffic lights over content, the generous whitespace, and the typography-first design.
 
 **Anti-reference**: Jira, Confluence, and other cluttered enterprise tools. Lexorium must never feel busy, overwhelming, or utilitarian. No information overload, no competing visual hierarchies, no "dashboard syndrome."
 
-**Visual tone**: A code-editor-inspired foundation refined with typographic warmth. The current One Dark/Light palette works well as a starting point but can evolve toward warmer, more refined tones to match the Bear-inspired direction. The monospace font (Fira Code) is core identity for code, but UI chrome and headings may benefit from a proportional typeface to create visual hierarchy and warmth.
+**Visual tone**: Cool slate sidebar (#2E3235) with warm terracotta accent (#D4654A). Lora serif for display/headings, system sans-serif for body/UI, Fira Code for code. The palette balances code-editor familiarity with typographic warmth.
 
-**Theme**: Both dark and light modes required. Dark mode is the default/hero experience.
+**Theme**: Both dark and light modes. Dark mode is the hero experience. Sidebar is always dark regardless of theme.
 
-### Existing Design Tokens
+### Design Tokens (Current)
 
 ```css
-/* Core palette (One Dark / One Light) */
---background-color-dark: #282c34;    --background-color-light: #FAFAFA;
---font-color-dark: #abb2bf;          --font-color-light: #383a42;
---accent-color: #4CAF50;             --focus-border-color: #56b6c2;
---highlight-color: #e5c07b;          --red-color: #e06c75;
---link-color-dark: #61afef;          --link-color-light: #4e75c8;
-
 /* Typography */
---font-family: "Fira Code", monospace;
+--font-display: "Lora", Georgia, serif;          /* Headings, logo */
+--font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;  /* UI, prose */
+--font-mono: "Fira Code", "SF Mono", monospace;  /* Code blocks */
 
-/* Spacing & Motion */
---section-padding: 25px;             --border-radius: 5px;
---transition-duration: 0.3s;
+/* Colors — Light Mode */
+--bg-primary: #FFFFFF;       --bg-secondary: #2E3235;    /* sidebar always dark */
+--bg-elevated: #FFFFFF;      --bg-input: #F4F5F6;
+--text-primary: #1A1D20;     --text-secondary: #6B7280;
+--accent: #D4654A;           --link: #5B7E9E;
+--code-bg: #F4F5F6;          --danger: #C0392B;
+
+/* Colors — Dark Mode (body.dark-mode) */
+--bg-primary: #2E3235;       --bg-elevated: #363A3E;
+--text-primary: #E2E5E9;     --link: #7EB5D6;
+--code-bg: #23272A;
+
+/* Spacing */
+--space-xs: 4px;  --space-sm: 8px;  --space-md: 16px;
+--space-lg: 24px; --space-xl: 32px; --space-2xl: 48px;
+
+/* Radii & Motion */
+--radius-sm: 4px;  --radius-md: 8px;  --radius-lg: 12px;
+--transition: 0.2s ease;
 ```
 
 ### Accessibility

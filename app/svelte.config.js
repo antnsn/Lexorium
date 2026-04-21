@@ -1,5 +1,5 @@
-{
-  "compilerOptions": {
-    "runes": true
+export default {
+  compilerOptions: {
+    runes: false
   }
-}
+};
