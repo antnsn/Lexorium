@@ -1,0 +1,138 @@
+{
+  "version": "1.0",
+  "sections": [
+    {
+      "id": "mxag5u64n",
+      "title": "04.01.2025 - 04:18",
+      "content": "first note",
+      "timestamp": "04.01.2025 - 04:18",
+      "tags": []
+    },
+    {
+      "id": "lrh94z93d",
+      "title": "another note",
+      "content": "second note",
+      "timestamp": "04.01.2025 - 04:19",
+      "tags": []
+    },
+    {
+      "id": "vwvx4qh1b",
+      "title": "04.01.2025 - 04:20",
+      "content": "third note",
+      "timestamp": "04.01.2025 - 04:20",
+      "tags": []
+    },
+    {
+      "id": "uljiojldu",
+      "title": "fourth note",
+      "content": "asd",
+      "timestamp": "04.01.2025 - 04:21",
+      "tags": []
+    },
+    {
+      "id": "ankz5hfey",
+      "title": "Joke Request",
+      "content": "Sure, here's a classic one for you: \n\nWhy don't we ever tell secrets on a farm? Because the potatoes have eyes, the corn has ears, and the beans stalk.",
+      "timestamp": "04.01.2025 - 04:22",
+      "tags": []
+    },
+    {
+      "id": "rd2gvgoao",
+      "title": "Run Electron App",
+      "content": "This command changes into the `app` directory and launches your Electron app using `npx`:\n\n```bash\ncd app && npx electron .\n```",
+      "timestamp": "21.04.2026 - 11:06",
+      "tags": []
+    },
+    {
+      "id": "uysg7hi3e",
+      "title": "new note",
+      "content": "function createClient(provider, apiKey) {\n    switch (provider) {\n        case 'openai':\n            return { type: 'openai', client: new OpenAI({ apiKey }) };\n\n        case 'openrouter':\n            return {\n                type: 'openrouter',\n                client: new OpenAI({\n                    apiKey,\n                    baseURL: 'https://openrouter.ai/api/v1',\n                    defaultHeaders: {\n                        'HTTP-Referer': 'https://github.com/antnsn/Lexorium',\n                        'X-Title': 'Lexorium',\n                    },\n                }),\n            };\n\n        case 'anthropic': {\n            let Anthropic;\n            try {\n                Anthropic = require('@anthropic-ai/sdk');\n            } catch (e) {\n                throw new Error(\n                    'Anthropic SDK not installed. Run: npm install @anthropic-ai/sdk'\n                );\n            }\n            // Handle both ESM default export and direct constructor\n            const AnthropicClass = Anthropic.default || Anthropic;\n            return { type: 'anthropic', client: new AnthropicClass({ apiKey }) };\n        }\n\n        default:\n            throw new Error(`Unknown provider: ${provider}`);\n    }\n}",
+      "timestamp": "21.04.2026 - 12:28",
+      "tags": []
+    },
+    {
+      "id": "q71px8t45",
+      "title": "note",
+      "content": "This function creates and returns an API client object based on the selected `provider`.\n\n### What it does\n- Accepts:\n  - `provider`: which AI provider to use\n  - `apiKey`: the API key for that provider\n- Returns an object with:\n  - `type`: the provider name\n  - `client`: an initialized SDK client\n\n### Provider handling\n- **`openai`**\n  - Creates a standard `OpenAI` client using the given API key.\n\n- **`openrouter`**\n  - Also uses the `OpenAI` client, but configures it with:\n    - a custom `baseURL`: `https://openrouter.ai/api/v1`\n    - custom headers:\n      - `HTTP-Referer`\n      - `X-Title`\n  - This is needed because OpenRouter is OpenAI-compatible but requires its own endpoint and often app-identifying headers.\n\n- **`anthropic`**\n  - Dynamically loads the `@anthropic-ai/sdk` package using `require()`.\n  - If the package is not installed, it throws a helpful error telling the user how to install it.\n  - Handles both:\n    - default ESM export\n    - direct CommonJS constructor\n  - Then returns an initialized Anthropic client.\n\n- **default**\n  - Throws an error if the provider is unknown.\n\n### Why dynamic import is useful here\nThe Anthropic SDK is only required when the `anthropic` provider is selected. This avoids forcing users to install that package unless they actually need it.\n\n### Potential improvement\nOne thing to note is that `OpenAI` must already be imported or defined elsewhere, otherwise the `openai` and `openrouter` cases will fail.\n\n```javascript\nfunction createClient(provider, apiKey) {\n    switch (provider) {\n        case 'openai':\n            return { type: 'openai', client: new OpenAI({ apiKey }) };\n\n        case 'openrouter':\n            return {\n                type: 'openrouter',\n                client: new OpenAI({\n                    apiKey,\n                    baseURL: 'https://openrouter.ai/api/v1',\n                    defaultHeaders: {\n                        'HTTP-Referer': 'https://github.com/antnsn/Lexorium',\n                        'X-Title': 'Lexorium',\n                    },\n                }),\n            };\n\n        case 'anthropic': {\n            let Anthropic;\n            try {\n                Anthropic = require('@anthropic-ai/sdk');\n            } catch (e) {\n                throw new Error(\n                    'Anthropic SDK not installed. Run: npm install @anthropic-ai/sdk'\n                );\n            }\n            // Handle both ESM default export and direct constructor\n            const AnthropicClass = Anthropic.default || Anthropic;\n            return { type: 'anthropic', client: new AnthropicClass({ apiKey }) };\n        }\n\n        default:\n            throw new Error(`Unknown provider: ${provider}`);\n    }\n}\n```",
+      "timestamp": "21.04.2026 - 12:30",
+      "tags": []
+    },
+    {
+      "id": "0935c0wmt",
+      "title": "test",
+      "content": "Error: No API key configured. Open Settings to add one.",
+      "tags": [],
+      "timestamp": "21.04.2026 - 14:39"
+    },
+    {
+      "id": "fnumyocpl",
+      "title": "Test",
+      "content": "# Test\n\n**Error:** No API key configured. Open **Settings** to add one.",
+      "tags": [],
+      "timestamp": "21.04.2026 - 14:43"
+    },
+    {
+      "id": "zmc7hafcx",
+      "title": "Test",
+      "content": "# Test\n\n```js\nfunction createClient(provider, apiKey) {\n    switch (provider) {\n        case 'openai':\n            return {\n                type: 'openai',\n                client: new OpenAI({ apiKey }),\n            };\n\n        case 'openrouter':\n            return {\n                type: 'openrouter',\n                client: new OpenAI({\n                    apiKey,\n                    baseURL: 'https://openrouter.ai/api/v1',\n                    defaultHeaders: {\n                        'HTTP-Referer': 'https://github.com/antnsn/Lexorium',\n                        'X-Title': 'Lexorium',\n                    },\n                }),\n            };\n\n        case 'anthropic': {\n            let Anthropic;\n\n            try {\n                Anthropic = require('@anthropic-ai/sdk');\n            } catch (e) {\n                throw new Error(\n                    'Anthropic SDK not installed. Run: npm install @anthropic-ai/sdk'\n                );\n            }\n\n            // Handle both ESM default export and direct constructor\n            const AnthropicClass = Anthropic.default || Anthropic;\n\n            return {\n                type: 'anthropic',\n                client: new AnthropicClass({ apiKey }),\n            };\n        }\n\n        default:\n            throw new Error(`Unknown provider: ${provider}`);\n    }\n}\n```",
+      "tags": [],
+      "timestamp": "21.04.2026 - 14:44"
+    },
+    {
+      "id": "ql41p63j6",
+      "title": "test",
+      "content": "# test\n\n```js\nfunction createClient(provider, apiKey) {\n    switch (provider) {\n        case 'openai':\n            return {\n                type: 'openai',\n                client: new OpenAI({ apiKey }),\n            };\n\n        case 'openrouter':\n            return {\n                type: 'openrouter',\n                client: new OpenAI({\n                    apiKey,\n                    baseURL: 'https://openrouter.ai/api/v1',\n                    defaultHeaders: {\n                        'HTTP-Referer': 'https://github.com/antnsn/Lexorium',\n                        'X-Title': 'Lexorium',\n                    },\n                }),\n            };\n\n        case 'anthropic': {\n            let Anthropic;\n\n            try {\n                Anthropic = require('@anthropic-ai/sdk');\n            } catch (e) {\n                throw new Error(\n                    'Anthropic SDK not installed. Run: npm install @anthropic-ai/sdk'\n                );\n            }\n\n            // Handle both ESM default export and direct constructor\n            const AnthropicClass = Anthropic.default || Anthropic;\n\n            return {\n                type: 'anthropic',\n                client: new AnthropicClass({ apiKey }),\n            };\n        }\n\n        default:\n            throw new Error(`Unknown provider: ${provider}`);\n    }\n}\n```",
+      "tags": [],
+      "timestamp": "21.04.2026 - 14:44"
+    },
+    {
+      "id": "cbxcixnsy",
+      "title": "21.04.2026 - 14:45",
+      "content": "```js\nfunction createClient(provider, apiKey) {\n    switch (provider) {\n        case 'openai':\n            return {\n                type: 'openai',\n                client: new OpenAI({ apiKey }),\n            };\n\n        case 'openrouter':\n            return {\n                type: 'openrouter',\n                client: new OpenAI({\n                    apiKey,\n                    baseURL: 'https://openrouter.ai/api/v1',\n                    defaultHeaders: {\n                        'HTTP-Referer': 'https://github.com/antnsn/Lexorium',\n                        'X-Title': 'Lexorium',\n                    },\n                }),\n            };\n\n        case 'anthropic': {\n            let Anthropic;\n\n            try {\n                Anthropic = require('@anthropic-ai/sdk');\n            } catch (e) {\n                throw new Error(\n                    'Anthropic SDK not installed. Run: npm install @anthropic-ai/sdk'\n                );\n            }\n\n            // Handle both ESM default export and direct constructor\n            const AnthropicClass = Anthropic.default || Anthropic;\n\n            return {\n                type: 'anthropic',\n                client: new AnthropicClass({ apiKey }),\n            };\n        }\n\n        default:\n            throw new Error(`Unknown provider: ${provider}`);\n    }\n}\n```",
+      "tags": [],
+      "timestamp": "21.04.2026 - 14:45"
+    },
+    {
+      "id": "iump9emdt",
+      "title": "21.04.2026 - 14:48",
+      "content": "```js\nfunction createClient(provider, apiKey) {\n    switch (provider) {\n        case 'openai':\n            return {\n                type: 'openai',\n                client: new OpenAI({ apiKey }),\n            };\n\n        case 'openrouter':\n            return {\n                type: 'openrouter',\n                client: new OpenAI({\n                    apiKey,\n                    baseURL: 'https://openrouter.ai/api/v1',\n                    defaultHeaders: {\n                        'HTTP-Referer': 'https://github.com/antnsn/Lexorium',\n                        'X-Title': 'Lexorium',\n                    },\n                }),\n            };\n\n        case 'anthropic': {\n            let Anthropic;\n\n            try {\n                Anthropic = require('@anthropic-ai/sdk');\n            } catch (e) {\n                throw new Error(\n                    'Anthropic SDK not installed. Run: npm install @anthropic-ai/sdk'\n                );\n            }\n\n            // Handle both ESM default export and direct constructor\n            const AnthropicClass = Anthropic.default || Anthropic;\n\n            return {\n                type: 'anthropic',\n                client: new AnthropicClass({ apiKey }),\n            };\n        }\n\n        default:\n            throw new Error(`Unknown provider: ${provider}`);\n    }\n}\n```",
+      "tags": [],
+      "timestamp": "21.04.2026 - 14:48"
+    },
+    {
+      "id": "pkuclcvij",
+      "title": "21.04.2026 - 14:49",
+      "content": "```js\nfunction createClient(provider, apiKey) {\n    switch (provider) {\n        case 'openai':\n            return {\n                type: 'openai',\n                client: new OpenAI({ apiKey }),\n            };\n\n        case 'openrouter':\n            return {\n                type: 'openrouter',\n                client: new OpenAI({\n                    apiKey,\n                    baseURL: 'https://openrouter.ai/api/v1',\n                    defaultHeaders: {\n                        'HTTP-Referer': 'https://github.com/antnsn/Lexorium',\n                        'X-Title': 'Lexorium',\n                    },\n                }),\n            };\n\n        case 'anthropic': {\n            let Anthropic;\n\n            try {\n                Anthropic = require('@anthropic-ai/sdk');\n            } catch (e) {\n                throw new Error(\n                    'Anthropic SDK not installed. Run: npm install @anthropic-ai/sdk'\n                );\n            }\n\n            // Handle both ESM default export and direct constructor\n            const AnthropicClass = Anthropic.default || Anthropic;\n\n            return {\n                type: 'anthropic',\n                client: new AnthropicClass({ apiKey }),\n            };\n        }\n\n        default:\n            throw new Error(`Unknown provider: ${provider}`);\n    }\n}\n```",
+      "tags": [],
+      "timestamp": "21.04.2026 - 14:49"
+    },
+    {
+      "id": "ik07jejmj",
+      "title": "21.04.2026 - 14:53",
+      "content": "```js\nfunction createClient(provider, apiKey) {\n    switch (provider) {\n        case 'openai':\n            return {\n                type: 'openai',\n                client: new OpenAI({ apiKey }),\n            };\n\n        case 'openrouter':\n            return {\n                type: 'openrouter',\n                client: new OpenAI({\n                    apiKey,\n                    baseURL: 'https://openrouter.ai/api/v1',\n                    defaultHeaders: {\n                        'HTTP-Referer': 'https://github.com/antnsn/Lexorium',\n                        'X-Title': 'Lexorium',\n                    },\n                }),\n            };\n\n        case 'anthropic': {\n            let Anthropic;\n\n            try {\n                Anthropic = require('@anthropic-ai/sdk');\n            } catch (e) {\n                throw new Error(\n                    'Anthropic SDK not installed. Run: npm install @anthropic-ai/sdk'\n                );\n            }\n\n            // Handle both ESM default export and direct constructor.\n            const AnthropicClass = Anthropic.default || Anthropic;\n\n            return {\n                type: 'anthropic',\n                client: new AnthropicClass({ apiKey }),\n            };\n        }\n\n        default:\n            throw new Error(`Unknown provider: ${provider}`);\n    }\n}\n```",
+      "tags": [],
+      "timestamp": "21.04.2026 - 14:53"
+    },
+    {
+      "id": "4j8tcafqu",
+      "title": "21.04.2026 - 14:55",
+      "content": "```js\nfunction createClient(provider, apiKey) {\n    switch (provider) {\n        case 'openai':\n            return {\n                type: 'openai',\n                client: new OpenAI({ apiKey }),\n            };\n\n        case 'openrouter':\n            return {\n                type: 'openrouter',\n                client: new OpenAI({\n                    apiKey,\n                    baseURL: 'https://openrouter.ai/api/v1',\n                    defaultHeaders: {\n                        'HTTP-Referer': 'https://github.com/antnsn/Lexorium',\n                        'X-Title': 'Lexorium',\n                    },\n                }),\n            };\n\n        case 'anthropic': {\n            let Anthropic;\n\n            try {\n                Anthropic = require('@anthropic-ai/sdk');\n            } catch (e) {\n                throw new Error(\n                    'Anthropic SDK is not installed. Run: npm install @anthropic-ai/sdk'\n                );\n            }\n\n            // Support both ESM default exports and direct constructors.\n            const AnthropicClass = Anthropic.default || Anthropic;\n\n            return {\n                type: 'anthropic',\n                client: new AnthropicClass({ apiKey }),\n            };\n        }\n\n        default:\n            throw new Error(`Unknown provider: ${provider}`);\n    }\n}\n```",
+      "tags": [],
+      "timestamp": "21.04.2026 - 14:55"
+    },
+    {
+      "id": "vqy6tla04",
+      "title": "21.04.2026 - 14:57",
+      "content": "```js\nfunction createClient(provider, apiKey) {\n    switch (provider) {\n        case 'openai':\n            return { type: 'openai', client: new OpenAI({ apiKey }) };\n\n        case 'openrouter':\n            return {\n                type: 'openrouter',\n                client: new OpenAI({\n                    apiKey,\n                    baseURL: 'https://openrouter.ai/api/v1',\n                    defaultHeaders: {\n                        'HTTP-Referer': 'https://github.com/antnsn/Lexorium',\n                        'X-Title': 'Lexorium',\n                    },\n                }),\n            };\n\n        case 'anthropic': {\n            let Anthropic;\n            try {\n                Anthropic = require('@anthropic-ai/sdk');\n            } catch (e) {\n                throw new Error(\n                    'Anthropic SDK not installed. Run: npm install @anthropic-ai/sdk'\n                );\n            }\n\n            const AnthropicClass = Anthropic.default || Anthropic;\n            return { type: 'anthropic', client: new AnthropicClass({ apiKey }) };\n        }\n\n        default:\n            throw new Error(`Unknown provider: ${provider}`);\n    }\n}\n```",
+      "tags": [],
+      "timestamp": "21.04.2026 - 14:57"
+    },
+    {
+      "id": "9gfa26cr2",
+      "title": "Read JSON Config",
+      "content": "This function reads a configuration file from `configPath` if it exists and returns the parsed JSON object.\n\n- It first checks whether the file exists using `fs.existsSync(configPath)`.\n- If the file exists, it tries to read and parse it with `JSON.parse(fs.readFileSync(configPath))`.\n- If parsing or reading fails, it logs an error and returns an empty object `{}`.\n- If the file does not exist, it also returns an empty object `{}`.\n\nOne important detail: `fs.readFileSync(configPath)` returns a `Buffer` unless an encoding is provided. In many cases, `JSON.parse` expects a string, so it's safer to read the file as UTF-8 text.\n\n```javascript\nfunction readConfig() {\n    if (fs.existsSync(configPath)) {\n        try {\n            return JSON.parse(fs.readFileSync(configPath, 'utf8'));\n        } catch (error) {\n            console.error('Error reading config:', error);\n            return {};\n        }\n    }\n    return {};\n}\n```",
+      "tags": [],
+      "timestamp": "21.04.2026 - 15:01"
+    }
+  ]
+}

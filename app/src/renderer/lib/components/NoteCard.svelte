@@ -87,11 +87,15 @@
     background: var(--bg-elevated);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
     overflow-x: auto;
     transition: border-color var(--transition), box-shadow var(--transition);
   }
 
-  .note-card:hover { border-color: var(--border-strong); }
+  .note-card:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+  }
 
   .section-header {
     display: flex;
