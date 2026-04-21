@@ -32,7 +32,9 @@ function createNotesStore() {
       return $sorted.filter(
         (s) =>
           s.title.toLowerCase().includes(term) ||
-          s.content.toLowerCase().includes(term)
+          s.content.toLowerCase().includes(term) ||
+          (s.timestamp && s.timestamp.toLowerCase().includes(term)) ||
+          (s.tags && s.tags.some(t => t.toLowerCase().includes(term)))
       );
     }
   );
