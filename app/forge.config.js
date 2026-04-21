@@ -8,7 +8,6 @@ module.exports = {
     platform: ['darwin'],
     arch: ['arm64'],
     osxSign: {
-      identity: null, // Let electron-forge detect the identity
       'hardened-runtime': true,
       entitlements: 'entitlements.plist',
       'entitlements-inherit': 'entitlements.plist',
@@ -61,6 +60,29 @@ module.exports = {
     {
       name: '@electron-forge/plugin-auto-unpack-natives',
       config: {}
+    },
+    {
+      name: '@electron-forge/plugin-vite',
+      config: {
+        build: [
+          {
+            entry: 'src/main.js',
+            config: 'vite.main.config.mjs',
+            target: 'main',
+          },
+          {
+            entry: 'src/preload.js',
+            config: 'vite.preload.config.mjs',
+            target: 'preload',
+          },
+        ],
+        renderer: [
+          {
+            name: 'main_window',
+            config: 'vite.renderer.config.mjs',
+          },
+        ],
+      },
     },
     new FusesPlugin({
       version: FuseVersion.V1,

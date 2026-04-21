@@ -1,8 +1,8 @@
 {
   "name": "Lexorium",
-  "version": "3.0.4",
+  "version": "4.0.0",
   "description": "A magical text editor for notes and code snippets",
-  "main": "main.js",
+  "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
@@ -26,53 +26,12 @@
     "@electron-forge/maker-zip": "^7.4.0",
     "@electron-forge/plugin-auto-unpack-natives": "^7.4.0",
     "@electron-forge/plugin-fuses": "^7.4.0",
+    "@electron-forge/plugin-vite": "^7.11.1",
     "@electron-forge/publisher-github": "^7.4.0",
     "@electron/fuses": "^1.8.0",
-    "electron": "^32.1.2"
-  },
-  "config": {
-    "forge": {
-      "packagerConfig": {
-        "icon": "assets/icon"
-      },
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "lexorium",
-            "setupIcon": "assets/icon.ico",
-            "setupExe": "LexoriumSetup.exe"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin",
-            "linux"
-          ]
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {}
-        }
-      ],
-      "publishers": [
-        {
-          "name": "@electron-forge/publisher-github",
-          "config": {
-            "repository": {
-              "owner": "antnsn",
-              "name": "lexorium"
-            },
-            "prerelease": false,
-            "draft": false
-          }
-        }
-      ]
-    }
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
+    "electron": "^32.1.2",
+    "svelte": "^5.55.4",
+    "vite": "^8.0.9"
   }
 }

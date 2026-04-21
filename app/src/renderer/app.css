@@ -1,0 +1,9 @@
+/* Placeholder — will be populated with design tokens */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
