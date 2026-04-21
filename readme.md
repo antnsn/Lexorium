@@ -33,8 +33,12 @@ brew tap antnsn/lexorium
 brew install --cask lexorium
 ```
 
-> **Note:** The macOS app may require manual permission to open due to unverified developer status.
-> [How to allow it](https://support.apple.com/en-us/102445)
+> **Note:** The macOS app is currently unsigned. After downloading, you may need to remove the quarantine attribute:
+> ```bash
+> xattr -cr /Applications/Lexorium.app
+> ```
+> Or right-click the app and select **Open** to bypass Gatekeeper.
+> [More info](https://support.apple.com/en-us/102445)
 
 ## Usage
 
