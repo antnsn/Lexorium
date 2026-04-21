@@ -15,7 +15,7 @@
     "marked-highlight": "^2.2.4"
   },
   "author": "Marius Antonsen",
-  "license": "ISC",
+  "license": "AGPL-3.0-only",
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@tauri-apps/api": "^2.0.0",
