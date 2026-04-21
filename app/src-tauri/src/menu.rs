@@ -35,6 +35,9 @@ pub fn create_menu(app: &App) -> Result<(), Box<dyn std::error::Error>> {
         .item(&MenuItemBuilder::with_id("file-save", "Save")
             .accelerator("CmdOrCtrl+S")
             .build(handle)?)
+        .item(&MenuItemBuilder::with_id("file-save-as", "Save As…")
+            .accelerator("CmdOrCtrl+Shift+S")
+            .build(handle)?)
         .separator()
         .close_window()
         .build()?;
@@ -96,6 +99,10 @@ pub fn create_menu(app: &App) -> Result<(), Box<dyn std::error::Error>> {
             "file-save" => {
                 log::info!("Emitting file-save-request event");
                 let _ = app_handle.emit("file-save-request", "save");
+            }
+            "file-save-as" => {
+                log::info!("Emitting file-save-as-request event");
+                let _ = app_handle.emit("file-save-as-request", "save-as");
             }
             "settings" => {
                 log::info!("Emitting show-settings event");

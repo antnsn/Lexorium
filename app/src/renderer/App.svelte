@@ -17,6 +17,7 @@
   let undoAvailable = false;
   let currentFilePath = '';
   let sidebarVisible = true;
+  let recentFiles = [];
   let cleanups = [];
 
   const unsubFilePath = notes.filePath.subscribe(v => currentFilePath = v);
@@ -26,20 +27,22 @@
 
   onMount(async () => {
     settings.load();
+    await loadRecentFiles();
 
     // Auto-load last opened file
     try {
       const lastPath = await platform.getLastOpenedFile();
       if (lastPath) {
-        const content = await platform.openDocument(lastPath);
-        if (content) {
+        const result = await platform.openDocument(lastPath);
+        if (result?.content) {
           try {
-            const parsed = JSON.parse(content);
-            notes.load(parsed, lastPath);
+            const parsed = JSON.parse(result.content);
+            notes.load(parsed, result.filePath);
           } catch {
-            const converted = notes.convertMarkdown(content);
-            notes.load(converted, lastPath);
+            const converted = notes.convertMarkdown(result.content);
+            notes.load(converted, result.filePath);
           }
+          await loadRecentFiles();
         }
       }
     } catch (err) {
@@ -59,24 +62,30 @@
           const converted = notes.convertMarkdown(data.content);
           notes.load(converted, data.filePath);
         }
+        loadRecentFiles();
       }
     }));
 
     cleanups.push(await platform.onFileOpenRequest(async () => {
       const result = await platform.openDocument();
-      if (result) {
+      if (result?.content) {
         try {
-          const parsed = JSON.parse(result);
-          notes.load(parsed);
+          const parsed = JSON.parse(result.content);
+          notes.load(parsed, result.filePath);
         } catch {
-          const converted = notes.convertMarkdown(result);
-          notes.load(converted);
+          const converted = notes.convertMarkdown(result.content);
+          notes.load(converted, result.filePath);
         }
+        await loadRecentFiles();
       }
     }));
 
     cleanups.push(await platform.onFileSaveRequest(async () => {
       await saveDocument();
+    }));
+
+    cleanups.push(await platform.onFileSaveAsRequest(async () => {
+      await saveDocumentAs();
     }));
 
     cleanups.push(await platform.onDarkModeToggle(() => {
@@ -151,6 +160,42 @@
   async function saveDocument() {
     if (currentFilePath) {
       await platform.saveDocument(currentFilePath, notes.toJSON());
+    } else {
+      await saveDocumentAs();
+    }
+  }
+
+  async function saveDocumentAs() {
+    const newPath = await platform.saveDocumentAs(notes.toJSON());
+    if (newPath) {
+      notes.filePath.set(newPath);
+      await loadRecentFiles();
+    }
+  }
+
+  async function loadRecentFiles() {
+    try {
+      recentFiles = (await platform.getRecentFiles()) || [];
+    } catch {
+      recentFiles = [];
+    }
+  }
+
+  async function openRecentFile(filePath) {
+    try {
+      const result = await platform.openDocument(filePath);
+      if (result?.content) {
+        try {
+          const parsed = JSON.parse(result.content);
+          notes.load(parsed, result.filePath);
+        } catch {
+          const converted = notes.convertMarkdown(result.content);
+          notes.load(converted, result.filePath);
+        }
+        await loadRecentFiles();
+      }
+    } catch (err) {
+      console.error('Failed to open recent file:', err);
     }
   }
 
@@ -169,11 +214,13 @@
       notes={displayedNotes}
       tagTree={$tagTree}
       selectedTag={$selectedTag}
+      {recentFiles}
       on:tagSelect={handleTagSelect}
       on:noteClick={(e) => {
         const el = document.getElementById(`section-${e.detail}`);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }}
+      on:openRecent={(e) => openRecentFile(e.detail)}
       on:undo={handleUndo}
       on:openSettings={() => showSettings.set(true)}
       hasUndo={undoAvailable}

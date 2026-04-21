@@ -23,6 +23,7 @@ pub fn run() {
             document::open_document,
             document::save_document,
             document::get_recent_files,
+            document::add_recent_file,
             document::get_last_opened_file,
             document::save_last_opened_file,
             ai::ai_process,

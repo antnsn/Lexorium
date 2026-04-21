@@ -36,16 +36,38 @@ export async function openDocument(filePath) {
     }
     if (!path) return null;
     const content = await invoke('open_document', { path });
-    if (content) await saveLastOpenedFile(path);
-    return content;
+    if (content) {
+      await saveLastOpenedFile(path);
+      await addRecentFile(path);
+    }
+    return { content, filePath: path };
   }
   return null;
 }
 
 export async function saveDocument(filePath, content) {
   const result = await invoke('save_document', { path: filePath, content });
-  if (filePath) await saveLastOpenedFile(filePath);
+  if (filePath) {
+    await saveLastOpenedFile(filePath);
+    await addRecentFile(filePath);
+  }
   return result;
+}
+
+export async function saveDocumentAs(content) {
+  if (isTauri()) {
+    const { save } = await import('@tauri-apps/plugin-dialog');
+    const path = await save({
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+      defaultPath: 'notes.json',
+    });
+    if (!path) return null;
+    await invoke('save_document', { path, content });
+    await saveLastOpenedFile(path);
+    await addRecentFile(path);
+    return path;
+  }
+  return null;
 }
 
 export async function getLastOpenedFile() {
@@ -58,6 +80,10 @@ export async function saveLastOpenedFile(filePath) {
 
 export async function getRecentFiles() {
   return invoke('get_recent_files') || [];
+}
+
+export async function addRecentFile(filePath) {
+  return invoke('add_recent_file', { path: filePath });
 }
 
 // --- AI operations ---
@@ -102,6 +128,10 @@ export function onFileSaveRequest(handler) {
   return listen('file-save-request', handler);
 }
 
+export function onFileSaveAsRequest(handler) {
+  return listen('file-save-as-request', handler);
+}
+
 export function onDarkModeToggle(handler) {
   return listen('dark-mode-toggle', handler);
 }
@@ -136,9 +166,11 @@ export async function reloadWindow() {
 export const platform = {
   openDocument,
   saveDocument,
+  saveDocumentAs,
   getLastOpenedFile,
   saveLastOpenedFile,
   getRecentFiles,
+  addRecentFile,
   processWithAI,
   getAIConfig,
   setAIConfig,
@@ -146,6 +178,7 @@ export const platform = {
   onFileOpened,
   onFileOpenRequest,
   onFileSaveRequest,
+  onFileSaveAsRequest,
   onDarkModeToggle,
   onDarkModeChange,
   onShowSettings,
