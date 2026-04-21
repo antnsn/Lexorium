@@ -12,11 +12,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openFile: () => ipcRenderer.invoke('dialog:openFile'),
     reloadWindow: () => ipcRenderer.invoke('window:reload'),
     
-    // ChatGPT APIs
+    // AI APIs (multi-provider)
     sendToChatGPT: (text, type) => ipcRenderer.invoke('chatgpt:send', text, type),
     processWithChatGPT: (prompt, bodyContent, headerValue) => ipcRenderer.invoke('chatgpt:process', prompt, bodyContent, headerValue),
     setApiKey: (apiKey) => ipcRenderer.invoke('chatgpt:set-api-key', apiKey),
     getApiKey: () => ipcRenderer.invoke('chatgpt:get-api-key'),
+    getAIConfig: () => ipcRenderer.invoke('ai:get-config'),
+    setAIConfig: (config) => ipcRenderer.invoke('ai:set-config', config),
     
     // Remove event listeners when needed
     removeListener: (channel, callback) => ipcRenderer.removeListener(channel, callback),

@@ -843,15 +843,38 @@ pre:hover .copy-button {
 
 .settings-section label {
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
+    margin-top: 14px;
+    font-weight: 500;
 }
 
-.settings-section input {
+.settings-section label:first-of-type {
+    margin-top: 0;
+}
+
+.settings-section input,
+.settings-section select {
     width: 100%;
     padding: 8px;
     margin-bottom: 10px;
     border-radius: 4px;
     font-size: 1rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-background-light);
+    color: inherit;
+    box-sizing: border-box;
+}
+
+.dark-mode .settings-section input,
+.dark-mode .settings-section select {
+    background-color: var(--input-background-dark);
+    color: var(--font-color-dark);
+    border-color: var(--border-color);
+}
+
+.settings-section select {
+    appearance: auto;
+    cursor: pointer;
 }
 
 

@@ -65,7 +65,7 @@
                 <div class="input-controls">
                     <label class="checkbox-label">
                         <input type="checkbox" id="use-chatgpt" />
-                        Analyze with ChatGPT
+                        Analyze with AI
                     </label>
                     <button id="add-note">
                         <span class="button-content">
@@ -84,9 +84,20 @@
                     <button class="close-modal">&times;</button>
                 </div>
                 <div class="settings-section">
-                    <label for="api-key">OpenAI API Key:</label>
-                    <input type="password" id="api-key" placeholder="Enter your OpenAI API key">
-                    <button id="save-api-key">Save API Key</button>
+                    <label for="ai-provider">AI Provider:</label>
+                    <select id="ai-provider">
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic</option>
+                        <option value="openrouter">OpenRouter</option>
+                    </select>
+
+                    <label for="ai-model" id="ai-model-label">Model:</label>
+                    <input type="text" id="ai-model" placeholder="gpt-4o">
+
+                    <label for="api-key" id="api-key-label">API Key:</label>
+                    <input type="password" id="api-key" placeholder="Enter your API key">
+
+                    <button id="save-api-key">Save Settings</button>
                 </div>
             </div>
         </div>

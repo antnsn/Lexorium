@@ -24,7 +24,8 @@ Lexorium/
 │   ├── styles.css                # All styles + theming (1293 LOC)
 │   ├── index.html                # Single-page shell (3-column layout)
 │   ├── menu.js                   # Application menu builder
-│   ├── chatgpt.js                # OpenAI integration
+│   ├── chatgpt.js                # Multi-provider AI orchestration
+│   ├── ai-provider.js            # Provider factory (OpenAI, Anthropic, OpenRouter)
 │   ├── config.js                 # Debug flag
 │   ├── utils.js                  # Config persistence, recent files
 │   ├── forge.config.js           # Electron Forge config
@@ -61,7 +62,7 @@ Lexorium/
 - **UI**: Vanilla JavaScript + jQuery 3.7.1
 - **Markdown**: `marked` v4.0.2 (CDN)
 - **Syntax Highlighting**: `highlight.js` v11.10.0 (CDN)
-- **AI**: OpenAI `openai` npm package v4.76.1, hardcoded to `gpt-4`
+- **AI**: Multi-provider support — OpenAI (`openai` v4.76.1), Anthropic (`@anthropic-ai/sdk`), OpenRouter (via OpenAI SDK)
 - **Icons**: Font Awesome 6.7.1 (CDN)
 - **Textarea**: autosize 6.0.1 (CDN)
 - **Packaging**: Electron Forge makers for macOS (zip), Windows (Squirrel), Linux (deb/rpm)
@@ -82,6 +83,12 @@ The `preload.js` exposes `window.electronAPI` with these channels:
 | `getConfig` | renderer → main | Read config.json |
 | `setConfig` | renderer → main | Write config.json |
 | `file-opened` | main → renderer | File opened from menu/recent |
+| `chatgpt:send` | renderer → main | Send text to AI (legacy name) |
+| `chatgpt:process` | renderer → main | Process content with AI (legacy name) |
+| `chatgpt:set-api-key` | renderer → main | Set OpenAI API key (legacy) |
+| `chatgpt:get-api-key` | renderer → main | Get OpenAI API key (legacy) |
+| `ai:get-config` | renderer → main | Get full AI provider config |
+| `ai:set-config` | renderer → main | Save AI provider config |
 
 ### Data Format
 
@@ -111,13 +118,19 @@ Config is stored in Electron's `userData` directory as `config.json`:
 
 ```json
 {
-  "apiKey": "sk-...",
+  "aiProvider": "openai",
+  "openaiApiKey": "sk-...",
+  "openaiModel": "gpt-4o",
+  "anthropicApiKey": "sk-ant-...",
+  "anthropicModel": "claude-sonnet-4-20250514",
+  "openrouterApiKey": "sk-or-...",
+  "openrouterModel": "openai/gpt-4o",
   "recentFiles": ["/path/to/file.json"],
   "lastOpenedFile": "/path/to/file.json"
 }
 ```
 
-**Security note**: API key is stored in plaintext. This should be migrated to the OS keychain.
+**Security note**: API keys are stored in plaintext. This should be migrated to the OS keychain.
 
 ### UI Layout
 
@@ -131,11 +144,11 @@ Three-column layout:
 │  - Section 2 │   with code blocks       │  Content: [    ] │
 │  - Section 3 │                          │  [Add Note]      │
 │              │                          │                  │
-│  [Search]    │                          │  [ChatGPT]       │
+│  [Search]    │                          │  [Analyze w/ AI] │
 └──────────────┴──────────────────────────┴──────────────────┘
 ```
 
-Settings modal is toggled via gear icon (stores API key, theme preference).
+Settings modal is toggled via gear icon (stores AI provider config, API keys, theme preference).
 
 ### Theming
 
@@ -249,7 +262,7 @@ open macos-app/LXNative/LXNative.xcodeproj
 
 5. **CDN dependencies = no offline support**: jQuery, marked, highlight.js, Font Awesome, autosize all loaded from CDN URLs. App is broken without internet.
 
-6. **API key in plaintext**: Stored in `config.json` in userData directory. Should use OS keychain (like the Swift app does).
+6. **API keys in plaintext**: Stored in `config.json` in userData directory. Multiple provider keys now stored. Should use OS keychain (like the Swift app does).
 
 7. **`updateDocumentView()` is dead code** (`renderer.js` ~L182-261): An alternate rendering path that's never called. Has a different copy button style than `renderDocument()`.
 
@@ -351,7 +364,7 @@ The current problems stem from **lack of structure, not lack of a framework**:
    - `editor.js` — section editing logic
    - `renderer.js` — document rendering
    - `search.js` — filter/search functionality
-   - `chatgpt-ui.js` — AI chat panel logic
+   - `chatgpt-ui.js` — AI settings and chat panel logic
    - `settings.js` — settings modal
 
 2. **Phase 2 — Remove jQuery**: Replace `$()` calls with vanilla `document.querySelector()`. jQuery adds 87KB for minimal usage.
@@ -371,7 +384,7 @@ The current problems stem from **lack of structure, not lack of a framework**:
 - Remove dead code (`updateDocumentView`, `saveToFile`, `LXNative/` directory)
 - Add ESLint + Prettier configuration
 - Add basic tests (at minimum for data model operations)
-- Migrate API key to OS keychain via `safeStorage` (Electron has built-in support)
+- Migrate API keys to OS keychain via `safeStorage` (Electron has built-in support)
 - Add `Content-Security-Policy` meta tag to `index.html`
 - Consider electron-store or similar for config instead of raw JSON file I/O
 

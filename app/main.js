@@ -9,7 +9,7 @@ const {
 } = require("electron");
 const path = require("path");
 const fs = require("fs");
-const { initializeOpenAI, sendToChatGPT, loadApiKey, processWithChatGPT } = require('./chatgpt');
+const { initializeOpenAI, sendToChatGPT, loadApiKey, processWithChatGPT, getAIConfig, setAIConfig } = require('./chatgpt');
 const { createMenu, updateMenu } = require('./menu');
 const { loadLastOpenedFile, cleanUpTempFiles, saveLastOpenedFile } = require('./utils');
 const { DEBUG } = require('./config');
@@ -139,7 +139,7 @@ ipcMain.handle('file:save', async (event, { filePath, content }) => {
   }
 });
 
-// ChatGPT handlers
+// ChatGPT handlers (legacy, kept for backward compatibility)
 ipcMain.handle('chatgpt:set-api-key', async (event, apiKey) => {
   try {
     return await initializeOpenAI(apiKey);
@@ -157,7 +157,7 @@ ipcMain.handle('chatgpt:send', async (event, text, type) => {
   try {
     return await sendToChatGPT(text, type);
   } catch (error) {
-    DEBUG.error('Error sending to ChatGPT:', error);
+    DEBUG.error('Error sending to AI:', error);
     throw error;
   }
 });
@@ -166,7 +166,26 @@ ipcMain.handle('chatgpt:process', async (event, prompt, bodyContent, headerValue
   try {
     return await processWithChatGPT(prompt, bodyContent, headerValue);
   } catch (error) {
-    DEBUG.error('Error processing with ChatGPT:', error);
+    DEBUG.error('Error processing with AI:', error);
+    throw error;
+  }
+});
+
+// Multi-provider AI handlers
+ipcMain.handle('ai:get-config', async () => {
+  try {
+    return getAIConfig();
+  } catch (error) {
+    DEBUG.error('Error getting AI config:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('ai:set-config', async (event, config) => {
+  try {
+    return setAIConfig(config);
+  } catch (error) {
+    DEBUG.error('Error setting AI config:', error);
     throw error;
   }
 });

@@ -38,7 +38,7 @@ cd macos-app && swift build && swift test
 | Electron styles | `app/styles.css` |
 | Electron preload/IPC bridge | `app/preload.js` |
 | Electron app menu | `app/menu.js` |
-| Electron OpenAI integration | `app/chatgpt.js` |
+| Electron AI integration | `app/chatgpt.js`, `app/ai-provider.js` |
 | Electron config helper | `app/utils.js` |
 | Native app entry point | `macos-app/Sources/AppExec/AppMain.swift` |
 | Native app main view | `macos-app/Sources/AppUI/MainContentView.swift` |
@@ -106,13 +106,17 @@ There is no state management pattern — any function can read/write these globa
 - Toggle: `document.body.classList.toggle('dark-mode')`
 - Persisted in config.json
 
-### OpenAI Integration (`chatgpt.js`)
+### AI Integration (`chatgpt.js` + `ai-provider.js`)
 
-- Uses `openai` npm package (not a raw HTTP client)
-- API key stored in `config.json` (plaintext — this is a security issue)
-- Hardcoded to `gpt-4` model (line ~96 in chatgpt.js)
-- System prompt instructs the AI to help with coding/notes
-- Chat panel is in the right column of the UI
+- Multi-provider support: **OpenAI**, **Anthropic**, and **OpenRouter**
+- Provider abstraction in `ai-provider.js` with factory pattern
+- `chatgpt.js` orchestrates config, client lifecycle, and message routing
+- Each provider stores its own API key and model in `config.json`
+- OpenAI and OpenRouter use the `openai` npm SDK; Anthropic uses `@anthropic-ai/sdk`
+- OpenRouter reuses OpenAI SDK with custom `baseURL` and attribution headers
+- Backward compatible: legacy `openaiApiKey` config field still works
+- API keys stored in `config.json` (plaintext — this is a pre-existing security issue)
+- Settings modal allows switching providers, models, and API keys
 
 ---
 
@@ -342,11 +346,12 @@ React is overkill for a note-taking app of this size. If a framework becomes nec
 | File | LOC | Responsibility |
 |------|-----|----------------|
 | `main.js` | 185 | Window creation, IPC handlers, file I/O, app lifecycle |
-| `renderer.js` | 758 | ALL UI logic — rendering, editing, search, ChatGPT, events |
+| `renderer.js` | 758 | ALL UI logic — rendering, editing, search, AI settings, events |
 | `styles.css` | 1293 | ALL styles — layout, components, theming, animations |
 | `index.html` | 122 | HTML shell — 3-column layout, settings modal, CDN script tags |
 | `menu.js` | 259 | Application menu (File, Edit, View, Window, Help) |
-| `chatgpt.js` | 165 | OpenAI client, API key management, system prompts |
+| `chatgpt.js` | 210 | Multi-provider AI orchestration, config, system prompts |
+| `ai-provider.js` | 100 | Provider factory — OpenAI, Anthropic, OpenRouter adapters |
 | `utils.js` | 101 | Config persistence, recent files, temp file cleanup |
 | `preload.js` | 26 | Context bridge exposing `window.electronAPI` |
 | `config.js` | 15 | DEBUG flag object |

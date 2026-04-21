@@ -339,6 +339,49 @@ const settingsModal = document.getElementById('settings-modal');
 const closeModal = document.querySelector('.close-modal');
 const apiKeyInput = document.getElementById('api-key');
 const saveApiKeyBtn = document.getElementById('save-api-key');
+const aiProviderSelect = document.getElementById('ai-provider');
+const aiModelInput = document.getElementById('ai-model');
+const apiKeyLabel = document.getElementById('api-key-label');
+
+const providerLabels = {
+    openai: 'OpenAI API Key:',
+    anthropic: 'Anthropic API Key:',
+    openrouter: 'OpenRouter API Key:',
+};
+
+const providerPlaceholders = {
+    openai: 'sk-...',
+    anthropic: 'sk-ant-...',
+    openrouter: 'sk-or-...',
+};
+
+// Update UI elements when provider changes
+function updateProviderUI(provider, defaultModel) {
+    apiKeyLabel.textContent = providerLabels[provider] || 'API Key:';
+    apiKeyInput.placeholder = providerPlaceholders[provider] || 'Enter your API key';
+    if (defaultModel) {
+        aiModelInput.placeholder = defaultModel;
+    }
+}
+
+// When provider dropdown changes, update labels and load stored key/model
+aiProviderSelect.addEventListener('change', async () => {
+    const config = await electronAPI.getAIConfig();
+    const selectedProvider = aiProviderSelect.value;
+    const providerInfo = config.providers.find(p => p.id === selectedProvider);
+
+    updateProviderUI(selectedProvider, providerInfo?.defaultModel);
+
+    // Clear fields — user must enter key for new provider
+    apiKeyInput.value = '';
+    aiModelInput.value = '';
+
+    // If this is the currently active provider, load its saved values
+    if (selectedProvider === config.provider) {
+        apiKeyInput.value = config.apiKey || '';
+        aiModelInput.value = config.model || '';
+    }
+});
 
 // Close modal handlers
 closeModal.addEventListener('click', () => {
@@ -352,29 +395,31 @@ window.addEventListener('click', (event) => {
     }
 });
 
-// Save API key
+// Save settings
 saveApiKeyBtn.addEventListener('click', async () => {
+    const provider = aiProviderSelect.value;
+    const model = aiModelInput.value.trim();
     const apiKey = apiKeyInput.value.trim();
+
     if (!apiKey) {
         alert('Please enter an API key');
         return;
     }
 
     try {
-        const success = await electronAPI.setApiKey(apiKey);
+        const success = await electronAPI.setAIConfig({ provider, model, apiKey });
         if (success) {
-            alert('API key saved successfully');
+            alert('Settings saved successfully');
             settingsModal.style.display = 'none';
-            // If this was triggered by the checkbox, check it again
             const chatGPTCheckbox = document.getElementById('use-chatgpt');
             if (document.querySelector('.settings-message')) {
                 chatGPTCheckbox.checked = true;
             }
         } else {
-            alert('Failed to save API key');
+            alert('Failed to save settings');
         }
     } catch (error) {
-        alert('Error saving API key: ' + error.message);
+        alert('Error saving settings: ' + error.message);
     }
 });
 
@@ -594,14 +639,19 @@ undoButton.addEventListener("click", () => {
 });
 
 // Listen for show-settings event from the menu
-electronAPI.onShowSettings(() => {
+electronAPI.onShowSettings(async () => {
     settingsModal.style.display = "block";
-    // Load existing API key
-    electronAPI.getApiKey().then(apiKey => {
-        if (apiKey) {
-            apiKeyInput.value = apiKey;
-        }
-    });
+    try {
+        const config = await electronAPI.getAIConfig();
+        aiProviderSelect.value = config.provider || 'openai';
+        aiModelInput.value = config.model || '';
+        apiKeyInput.value = config.apiKey || '';
+
+        const providerInfo = config.providers.find(p => p.id === config.provider);
+        updateProviderUI(config.provider, providerInfo?.defaultModel);
+    } catch (error) {
+        console.error('Error loading AI config:', error);
+    }
 });
 
 addNoteButton.addEventListener("click", async () => {
@@ -677,32 +727,43 @@ addNoteButton.addEventListener("click", async () => {
 
 document.getElementById("use-chatgpt").addEventListener("change", async (event) => {
     if (event.target.checked) {
-        const apiKey = await electronAPI.getApiKey();
-        if (!apiKey) {
-            event.target.checked = false;  // Uncheck the box
-            settingsModal.style.display = "block";
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'settings-message';
-            messageDiv.textContent = 'This feature requires a ChatGPT API key. Please enter your API key below to use this functionality.';
-            
-            // Insert the message at the top of the settings-section
-            const settingsSection = document.querySelector('.settings-section');
-            settingsSection.insertBefore(messageDiv, settingsSection.firstChild);
+        try {
+            const config = await electronAPI.getAIConfig();
+            if (!config.apiKey) {
+                event.target.checked = false;
+                settingsModal.style.display = "block";
 
-            // Remove the message when modal is closed
-            const removeMessage = () => {
-                const message = document.querySelector('.settings-message');
-                if (message) {
-                    message.remove();
-                }
-            };
+                // Load current config into the modal
+                aiProviderSelect.value = config.provider || 'openai';
+                aiModelInput.value = config.model || '';
+                apiKeyInput.value = '';
+                const providerInfo = config.providers.find(p => p.id === config.provider);
+                updateProviderUI(config.provider, providerInfo?.defaultModel);
 
-            closeModal.addEventListener('click', removeMessage, { once: true });
-            window.addEventListener('click', (e) => {
-                if (e.target === settingsModal) {
-                    removeMessage();
-                }
-            }, { once: true });
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'settings-message';
+                messageDiv.textContent = 'This feature requires an AI provider API key. Please configure your provider and enter your API key below.';
+                
+                const settingsSection = document.querySelector('.settings-section');
+                settingsSection.insertBefore(messageDiv, settingsSection.firstChild);
+
+                const removeMessage = () => {
+                    const message = document.querySelector('.settings-message');
+                    if (message) {
+                        message.remove();
+                    }
+                };
+
+                closeModal.addEventListener('click', removeMessage, { once: true });
+                window.addEventListener('click', (e) => {
+                    if (e.target === settingsModal) {
+                        removeMessage();
+                    }
+                }, { once: true });
+            }
+        } catch (error) {
+            console.error('Error checking AI config:', error);
+            event.target.checked = false;
         }
     }
 });
