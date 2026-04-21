@@ -47,32 +47,41 @@
 
             <!-- Document Section -->
             <div id="doc-section">
-                <div id="document-view"></div>
-            </div>
-
-            <!-- Divider between Document and New Note sections -->
-            <div class="divider"></div>
-
-            <!-- New Note Section -->
-            <div id="input-section">
-                <h2>New Note</h2>
-                <input
-                    type="text"
-                    id="header-input"
-                    placeholder="Header (optional)"
-                />
-                <textarea id="body-input" placeholder="Body"></textarea>
-                <div class="input-controls">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="use-chatgpt" />
-                        Analyze with AI
-                    </label>
-                    <button id="add-note">
-                        <span class="button-content">
-                            <span class="button-text">Add Note</span>
-                        </span>
-                    </button>
+                <div id="doc-toolbar">
+                    <div id="doc-search-wrapper">
+                        <i class="fas fa-search" id="doc-search-icon"></i>
+                        <input type="text" id="doc-search-input" placeholder="Search notes…" />
+                    </div>
+                    <div id="doc-toolbar-actions">
+                        <button id="toggle-compose" title="New note (⌘⇧N)">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button id="settings-button" title="Settings">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </div>
                 </div>
+
+                <div id="compose-panel" class="collapsed">
+                    <input type="text" id="header-input" placeholder="Title" />
+                    <textarea id="body-input" placeholder="Write something…"></textarea>
+                    <div class="compose-controls">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="use-chatgpt" />
+                            ✨ Enhance with AI
+                        </label>
+                        <div class="compose-actions">
+                            <button id="cancel-compose" class="compose-btn-secondary">Cancel</button>
+                            <button id="add-note" class="compose-btn-primary">
+                                <span class="button-content">
+                                    <span class="button-text">Add Note</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="document-view"></div>
             </div>
         </div>
 

@@ -275,9 +275,219 @@ h2 {
 #doc-section {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-2xl) var(--space-xl);
+  display: flex;
+  flex-direction: column;
   background: var(--bg-primary);
   transition: background-color var(--transition);
+}
+
+/* ---------- Document Toolbar ---------- */
+#doc-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-xl);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+#doc-search-wrapper {
+  flex: 1;
+  position: relative;
+  max-width: 400px;
+}
+
+#doc-search-icon {
+  position: absolute;
+  left: var(--space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+#doc-search-input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md) var(--space-sm) 34px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition), background-color var(--transition);
+}
+
+#doc-search-input:focus {
+  border-color: var(--border-focus);
+}
+
+#doc-search-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+#doc-toolbar-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+#doc-toolbar-actions button {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all var(--transition);
+}
+
+#doc-toolbar-actions button:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+#toggle-compose.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+/* ---------- Compose Panel ---------- */
+#compose-panel {
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.2s ease, padding 0.3s ease;
+  max-height: 400px;
+  opacity: 1;
+}
+
+#compose-panel.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+#compose-panel #header-input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 1.1rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  outline: none;
+  margin-bottom: var(--space-sm);
+  transition: border-color var(--transition);
+}
+
+#compose-panel #header-input:focus {
+  border-bottom-color: var(--accent);
+}
+
+#compose-panel #header-input::placeholder {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+#compose-panel #body-input {
+  width: 100%;
+  min-height: 80px;
+  max-height: 200px;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 14px;
+  font-family: var(--font-body);
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  resize: none;
+  margin-bottom: var(--space-sm);
+}
+
+#compose-panel #body-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.compose-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.compose-controls .checkbox-label {
+  color: var(--text-secondary);
+}
+
+.compose-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.compose-btn-primary {
+  padding: var(--space-sm) var(--space-lg);
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition);
+}
+
+.compose-btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.compose-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.compose-btn-secondary {
+  padding: var(--space-sm) var(--space-md);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.compose-btn-secondary:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+/* ---------- Document Content ---------- */
+#document-view {
+  padding: var(--space-xl) var(--space-xl) var(--space-2xl);
+  flex: 1;
 }
 
 /* ---------- Note Cards ---------- */
@@ -517,82 +727,7 @@ pre:hover .copy-button {
   background: var(--accent-subtle);
 }
 
-/* ---------- Input Section ---------- */
-#input-section {
-  width: 280px;
-  min-width: 240px;
-  max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-lg) var(--space-md);
-  background: var(--bg-secondary);
-  transition: background-color var(--transition);
-  overflow-y: auto;
-  overflow-x: hidden;
-  color: var(--sidebar-text);
-}
-
-#input-section h2 {
-  font-family: var(--font-body);
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--sidebar-text-tertiary);
-  margin: 0 0 var(--space-md) 0;
-}
-
-#header-input {
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  font-size: 15px;
-  font-family: var(--font-display);
-  font-weight: 600;
-  color: var(--sidebar-text);
-  background: var(--sidebar-input-bg);
-  border: 1px solid var(--sidebar-border);
-  border-radius: var(--radius-md);
-  outline: none;
-  margin-bottom: var(--space-sm);
-  transition: border-color var(--transition), background-color var(--transition);
-}
-
-#header-input:focus {
-  border-color: var(--border-focus);
-}
-
-#header-input::placeholder {
-  color: var(--sidebar-text-tertiary);
-  font-weight: 400;
-}
-
-#body-input {
-  flex: 1;
-  width: 100%;
-  min-width: 100%;
-  max-width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  font-size: 14px;
-  font-family: var(--font-body);
-  line-height: 1.6;
-  color: var(--sidebar-text);
-  background: var(--sidebar-input-bg);
-  border: 1px solid var(--sidebar-border);
-  border-radius: var(--radius-md);
-  outline: none;
-  resize: none;
-  margin-bottom: var(--space-md);
-  transition: border-color var(--transition), background-color var(--transition);
-}
-
-#body-input:focus {
-  border-color: var(--border-focus);
-}
-
-#body-input::placeholder {
-  color: var(--sidebar-text-tertiary);
-}
-
+/* ---------- Shared Form Elements ---------- */
 textarea {
   font-family: var(--font-body);
   color: var(--text-primary);
@@ -609,19 +744,12 @@ textarea:focus {
   border-color: var(--border-focus);
 }
 
-.input-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
-}
-
 .checkbox-label {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
   font-size: 13px;
-  color: var(--sidebar-text-secondary);
+  color: var(--text-secondary);
   cursor: pointer;
   user-select: none;
 }
@@ -786,29 +914,6 @@ button {
   color: var(--danger);
   border-color: var(--danger);
   background: rgba(192, 57, 43, 0.06);
-}
-
-/* Input section editing mode */
-#input-section.editing-mode {
-  border: 2px solid var(--accent);
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow-md);
-  position: relative;
-  border-radius: var(--radius-md);
-}
-
-#input-section.editing-mode::before {
-  content: "Editing";
-  position: absolute;
-  top: -10px;
-  left: var(--space-md);
-  background: var(--accent);
-  color: #fff;
-  padding: 2px var(--space-sm);
-  border-radius: var(--radius-sm);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
 }
 
 /* ---------- Settings Modal ---------- */

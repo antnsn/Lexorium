@@ -30,6 +30,12 @@
       "title": "Joke Request",
       "content": "Sure, here's a classic one for you: \n\nWhy don't we ever tell secrets on a farm? Because the potatoes have eyes, the corn has ears, and the beans stalk.",
       "timestamp": "04.01.2025 - 04:22"
+    },
+    {
+      "id": "rd2gvgoao",
+      "title": "Run Electron App",
+      "content": "This command changes into the `app` directory and launches your Electron app using `npx`:\n\n```bash\ncd app && npx electron .\n```",
+      "timestamp": "21.04.2026 - 11:06"
     }
   ]
 }

@@ -427,6 +427,48 @@ saveApiKeyBtn.addEventListener('click', async () => {
 const addNoteButton = document.getElementById("add-note");
 const undoButton = document.getElementById("undo");
 
+// Compose panel toggle
+const composePanel = document.getElementById("compose-panel");
+const toggleComposeBtn = document.getElementById("toggle-compose");
+const cancelComposeBtn = document.getElementById("cancel-compose");
+const settingsButton = document.getElementById("settings-button");
+
+toggleComposeBtn.addEventListener("click", () => {
+    const isCollapsed = composePanel.classList.toggle("collapsed");
+    toggleComposeBtn.classList.toggle("active", !isCollapsed);
+    if (!isCollapsed) {
+        document.getElementById("header-input").focus();
+    }
+});
+
+cancelComposeBtn.addEventListener("click", () => {
+    composePanel.classList.add("collapsed");
+    toggleComposeBtn.classList.remove("active");
+    document.getElementById("header-input").value = "";
+    document.getElementById("body-input").value = "";
+    document.getElementById("use-chatgpt").checked = false;
+});
+
+settingsButton.addEventListener("click", () => {
+    document.getElementById("settings-modal").style.display = "block";
+});
+
+// Sync doc search with sidebar search
+const docSearchInput = document.getElementById("doc-search-input");
+const sidebarSearchInput = document.getElementById("search-input");
+docSearchInput.addEventListener("input", (e) => {
+    sidebarSearchInput.value = e.target.value;
+    sidebarSearchInput.dispatchEvent(new Event("input"));
+});
+
+// Keyboard shortcut: Cmd+Shift+N to toggle compose
+document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "n") {
+        e.preventDefault();
+        toggleComposeBtn.click();
+    }
+});
+
 const getCurrentTimeStamp = () => {
     const now = new Date();
     const day = String(now.getDate()).padStart(2, '0');
@@ -704,12 +746,14 @@ addNoteButton.addEventListener("click", async () => {
         updateTOC();
         saveDocument();
 
-        // Clear inputs
+        // Clear inputs and collapse compose panel
         headerInput.value = "";
         bodyInput.value = "";
         if (useChatGPT) {
             document.getElementById("use-chatgpt").checked = false;
         }
+        composePanel.classList.add("collapsed");
+        toggleComposeBtn.classList.remove("active");
 
     } catch (error) {
         console.error('Error adding note:', error);
