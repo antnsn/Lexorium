@@ -7,6 +7,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   </head>
   <body>
+    <script>
+      // Apply dark mode immediately to prevent flash of light mode
+      (function() {
+        var s = localStorage.getItem('lexorium-dark-mode');
+        var dark = s !== null ? s === 'true' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.body.classList.add('dark-mode');
+      })();
+    </script>
     <div id="app"></div>
     <script type="module" src="./main.js"></script>
   </body>

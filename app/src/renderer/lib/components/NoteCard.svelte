@@ -1,5 +1,5 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onDestroy } from 'svelte';
   import { renderMarkdown, highlightTags } from '../services/markdown.js';
   import { relativeTime } from '../utils/time.js';
   import { openExternalLink } from '../services/platform.js';
@@ -8,7 +8,25 @@
 
   const dispatch = createEventDispatcher();
 
+  let confirmingDelete = false;
+  let confirmTimer = null;
+
   $: html = highlightTags(renderMarkdown(section.content));
+
+  function handleDelete() {
+    if (confirmingDelete) {
+      clearTimeout(confirmTimer);
+      confirmingDelete = false;
+      dispatch('delete', { id: section.id });
+    } else {
+      confirmingDelete = true;
+      confirmTimer = setTimeout(() => { confirmingDelete = false; }, 3000);
+    }
+  }
+
+  onDestroy(() => {
+    if (confirmTimer) clearTimeout(confirmTimer);
+  });
 
   function copyCode(e) {
     const btn = e.target.closest('.copy-button');
@@ -58,8 +76,17 @@
       <button class="edit-btn" on:click={() => dispatch('edit')} title="Edit">
         <i class="fa-solid fa-pen"></i>
       </button>
-      <button class="delete-btn" on:click={() => dispatch('delete', { id: section.id })} title="Delete">
-        <i class="fa-solid fa-trash"></i>
+      <button
+        class="delete-btn"
+        class:confirming={confirmingDelete}
+        on:click={handleDelete}
+        title={confirmingDelete ? 'Click again to confirm' : 'Delete'}
+      >
+        {#if confirmingDelete}
+          <span class="confirm-label">Delete?</span>
+        {:else}
+          <i class="fa-solid fa-trash"></i>
+        {/if}
       </button>
     </div>
   </div>
@@ -157,6 +184,31 @@
   .delete-btn:hover {
     color: var(--danger);
     background: var(--danger-subtle);
+  }
+
+  .delete-btn.confirming {
+    width: auto;
+    min-width: 36px;
+    padding: 0 var(--space-sm);
+    color: var(--text-on-accent);
+    background: var(--danger);
+    border-radius: var(--radius-md);
+    animation: pulse-confirm 1s ease infinite;
+  }
+  .delete-btn.confirming:hover {
+    background: color-mix(in oklch, var(--danger), black 15%);
+  }
+
+  .confirm-label {
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    font-family: var(--font-body);
+  }
+
+  @keyframes pulse-confirm {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
   }
 
   .tags-row {

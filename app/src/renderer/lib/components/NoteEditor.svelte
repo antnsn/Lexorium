@@ -30,15 +30,19 @@
     aiMessage = '';
     aiError = false;
     try {
-      const result = await processWithAI('', content.trim(), title.trim());
-      if (result) {
-        content = result.response || content;
-        title = result.title || title;
+      const result = await processWithAI('', content.trim(), title.trim() || undefined);
+      if (result && result.response) {
+        content = result.response;
+        if (result.title) title = result.title;
         aiMessage = 'AI enhancement applied — review and save';
+      } else {
+        aiMessage = 'AI is not available — check Settings';
+        aiError = true;
       }
     } catch (err) {
       console.error('AI enhancement error:', err);
-      aiMessage = 'Error: ' + (err.message || err);
+      const msg = typeof err === 'string' ? err : (err.message || 'Unknown error');
+      aiMessage = msg;
       aiError = true;
     } finally {
       processing = false;
@@ -207,6 +211,11 @@
   }
   .enhance-btn:disabled { opacity: 0.6; cursor: not-allowed; }
   .enhance-btn:disabled:hover { background: var(--accent-subtle); color: var(--accent); }
+
+  .enhance-btn .spinner {
+    border-color: rgba(0,0,0,0.1);
+    border-top-color: var(--accent);
+  }
 
   .button-content {
     display: flex;
