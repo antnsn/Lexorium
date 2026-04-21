@@ -367,3 +367,69 @@ React is overkill for a note-taking app of this size. If a framework becomes nec
 | `JSONImporter.swift` | 39 | Electron JSON → SQLite import |
 | `Keychain.swift` | 40 | Keychain read/write helper |
 | `MetalView.swift` | 117 | Animated gradient Metal renderer |
+
+---
+
+## Design Context
+
+### Users
+
+Individual developers who want a beautiful, organized way to manage code snippets and technical notes. They reach for Lexorium when they need to capture, categorize, and retrieve code patterns, solutions, and documentation fragments across projects. These are developers who care about their tools — they want something that feels crafted, not just functional.
+
+### Brand Personality
+
+**Technical, Refined, Thoughtful.**
+
+Lexorium should feel like a precision instrument made by someone who deeply understands developers. Every interaction should feel intentional. The interface communicates competence through restraint — no clutter, no unnecessary elements, no visual noise. It earns trust through polish, not through feature density.
+
+**Emotional goal**: Delight through craft. When a developer opens Lexorium, they should feel like they're using something beautifully made — the kind of app you want to show someone. Think of the satisfaction of a well-designed mechanical keyboard or a perfectly typeset book.
+
+### Aesthetic Direction
+
+**Primary reference**: [Bear](https://bear.app) — elegant typography, warm atmosphere, beautiful Markdown rendering, and a sense of calm sophistication. Bear proves that a note app can feel genuinely premium.
+
+**Anti-reference**: Jira, Confluence, and other cluttered enterprise tools. Lexorium must never feel busy, overwhelming, or utilitarian. No information overload, no competing visual hierarchies, no "dashboard syndrome."
+
+**Visual tone**: A code-editor-inspired foundation refined with typographic warmth. The current One Dark/Light palette works well as a starting point but can evolve toward warmer, more refined tones to match the Bear-inspired direction. The monospace font (Fira Code) is core identity for code, but UI chrome and headings may benefit from a proportional typeface to create visual hierarchy and warmth.
+
+**Theme**: Both dark and light modes required. Dark mode is the default/hero experience.
+
+### Existing Design Tokens
+
+```css
+/* Core palette (One Dark / One Light) */
+--background-color-dark: #282c34;    --background-color-light: #FAFAFA;
+--font-color-dark: #abb2bf;          --font-color-light: #383a42;
+--accent-color: #4CAF50;             --focus-border-color: #56b6c2;
+--highlight-color: #e5c07b;          --red-color: #e06c75;
+--link-color-dark: #61afef;          --link-color-light: #4e75c8;
+
+/* Typography */
+--font-family: "Fira Code", monospace;
+
+/* Spacing & Motion */
+--section-padding: 25px;             --border-radius: 5px;
+--transition-duration: 0.3s;
+```
+
+### Accessibility
+
+**WCAG AA compliance** is required:
+- Minimum 4.5:1 contrast ratio for normal text, 3:1 for large text
+- All interactive elements must be keyboard accessible
+- Focus indicators must be visible and high-contrast
+- Support `prefers-reduced-motion` — disable transitions/animations when set
+- Ensure color is never the sole indicator of state (add icons, text, or patterns)
+- Code blocks must remain readable in both themes with sufficient contrast
+
+### Design Principles
+
+1. **Content is sovereign** — The user's notes and code are the center of attention. UI chrome should recede. Maximize the reading/writing area; minimize controls, borders, and decorative elements.
+
+2. **Warmth through typography** — Invest in beautiful type rendering. Generous line heights, considered font sizes, elegant Markdown output. Code in monospace; prose and UI in a warm proportional face. Typography IS the design.
+
+3. **Progressive disclosure** — Show only what's needed at each moment. Editing controls appear on hover/focus. Settings live in modals, not sidebars. The default state is clean and quiet.
+
+4. **Transitions, not teleportation** — Smooth, purposeful animations for state changes (opening sections, switching themes, showing/hiding panels). Motion should feel natural and unhurried — never flashy. Respect `prefers-reduced-motion`.
+
+5. **Polish is the product** — Every pixel matters. Consistent spacing, aligned elements, considered shadows, refined borders. The difference between good and great is in the details that most users feel but can't articulate.
