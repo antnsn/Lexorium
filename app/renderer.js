@@ -453,12 +453,17 @@ settingsButton.addEventListener("click", () => {
     document.getElementById("settings-modal").style.display = "block";
 });
 
-// Sync doc search with sidebar search
+// Doc search drives filtering directly
 const docSearchInput = document.getElementById("doc-search-input");
-const sidebarSearchInput = document.getElementById("search-input");
 docSearchInput.addEventListener("input", (e) => {
-    sidebarSearchInput.value = e.target.value;
-    sidebarSearchInput.dispatchEvent(new Event("input"));
+    filterNotes(e.target.value);
+});
+docSearchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+        docSearchInput.value = "";
+        filterNotes("");
+        docSearchInput.blur();
+    }
 });
 
 // Keyboard shortcut: Cmd+Shift+N to toggle compose
@@ -589,20 +594,6 @@ function undoDelete() {
     updateTOC();
     saveDocument();
 }
-
-const searchInput = document.getElementById('search-input');
-
-searchInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        searchInput.value = '';
-        filterNotes('');  // Clear search and show all notes
-        searchInput.blur();  // Remove focus from search input
-    }
-});
-
-searchInput.addEventListener('input', (e) => {
-    filterNotes(e.target.value);
-});
 
 function filterNotes(searchTerm) {
     const notes = document.querySelectorAll('.markdown-section');
@@ -810,18 +801,6 @@ document.getElementById("use-chatgpt").addEventListener("change", async (event) 
             event.target.checked = false;
         }
     }
-});
-
-// Add event listener for sort button
-const sortButton = document.getElementById('sort-order');
-sortButton.addEventListener('click', () => {
-    sortOrderAscending = !sortOrderAscending;
-    // Update sort button icon
-    const icon = sortButton.querySelector('i');
-    icon.className = sortOrderAscending ? 'fas fa-sort-amount-up' : 'fas fa-sort-amount-down';
-    // Re-render the document with new sort order
-    renderDocument(currentDocumentData);
-    updateTOC();
 });
 
 // Add event listener for undo button

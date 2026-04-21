@@ -156,64 +156,6 @@ h2 {
   margin: 0 0 var(--space-sm) 0;
 }
 
-.toc-controls {
-  display: flex;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-md);
-}
-
-#search-input {
-  flex: 1;
-  width: 100%;
-  padding: var(--space-sm) var(--space-md);
-  font-size: 13px;
-  font-family: var(--font-body);
-  color: var(--sidebar-text);
-  background: var(--sidebar-input-bg);
-  border: 1px solid var(--sidebar-border);
-  border-radius: var(--radius-md);
-  outline: none;
-  transition: border-color var(--transition), background-color var(--transition);
-}
-
-#search-input:focus {
-  border-color: var(--border-focus);
-}
-
-#search-input::placeholder {
-  color: var(--sidebar-text-tertiary);
-}
-
-#sort-order {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--sidebar-input-bg);
-  border: 1px solid var(--sidebar-border);
-  border-radius: var(--radius-md);
-  color: var(--sidebar-text-secondary);
-  cursor: pointer;
-  font-size: 12px;
-  transition: all var(--transition);
-}
-
-#sort-order:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-subtle);
-}
-
-#sort-order i {
-  transition: transform 0.3s ease;
-}
-
-#sort-order.ascending i {
-  transform: rotate(180deg);
-}
-
 #toc {
   flex: 1;
   overflow-y: auto;

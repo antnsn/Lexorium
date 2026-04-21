@@ -93,3 +93,5 @@ Thumbs.db
 node_modules
 Lexorium*
 *out
+macos-app/.build/
+macos-app/LXNative
