@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Mac App Store REQUIRES the sandbox. Reject-on-upload if absent. -->
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+
+	<!-- AI commands (src/commands/ai.rs) make outbound HTTPS requests. -->
+	<key>com.apple.security.network.client</key>
+	<true/>
+
+	<!-- Open/Save dialogs hand the app user-selected JSON documents. -->
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+
+	<!-- NOTE: com.apple.application-identifier and com.apple.developer.team-identifier
+	     are injected at sign time by the workflow (PlistBuddy) so the Team ID never
+	     lives in the repo. They MUST be present in the final signature for MAS. -->
+</dict>
+</plist>

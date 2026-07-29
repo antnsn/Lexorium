@@ -3,7 +3,8 @@
 </p>
 
 # Lexorium
-*(Derived from "lexicon" and "orium," suggesting a place for words)*
+
+_(Derived from "lexicon" and "orium," suggesting a place for words)_
 
 **Lexorium** is an open-source desktop app for managing markdown notes and code snippets. Built with **Tauri 2** and **Svelte 5**, it's fast, lightweight, and native — your go-to tool for capturing text, code, and ideas before they find their final destination.
 
