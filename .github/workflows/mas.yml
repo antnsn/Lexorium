@@ -27,12 +27,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Pin Xcode to match the local build toolchain (provides codesign,
-      # productbuild, altool). Adjust if the runner image lacks 26.5.
+      # Use the newest stable Xcode on the runner (provides codesign,
+      # productbuild, altool). A hard pin breaks when the image rotates.
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '26.5'
+          xcode-version: latest-stable
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
