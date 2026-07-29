@@ -42,7 +42,8 @@ jobs:
       - name: Download Release Asset
         run: |
           echo "Downloading from: $ASSET_URL"
-          curl -fSL "$ASSET_URL" -o "release.dmg"
+          # Retry: assets can lag briefly right after a release is published.
+          curl -fSL --retry 5 --retry-delay 15 --retry-all-errors "$ASSET_URL" -o "release.dmg"
           ls -lh "release.dmg"
 
       - name: Calculate SHA-256 Checksum

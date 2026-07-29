@@ -1,6 +1,9 @@
 name: Update WinGet
 
 on:
+  release:
+    types: [published]
+
   workflow_dispatch:
     inputs:
       version:
@@ -14,7 +17,8 @@ jobs:
     steps:
       - name: Determine version
         run: |
-          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${{ github.event.release.tag_name || github.event.inputs.version }}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "RAW_VERSION=${VERSION#v}" >> $GITHUB_ENV
 
       - name: Update Packages
@@ -23,4 +27,4 @@ jobs:
           komac-token: ${{ secrets.WINGET_TOKEN }}
           identifier: 'antnsn.lexorium'
           repo: 'antnsn/Lexorium'
-          url: 'https://github.com/antnsn/Lexorium/releases/download/${{ github.event.inputs.version }}/Lexorium_${{ env.RAW_VERSION }}_x64-setup.exe'
+          url: 'https://github.com/antnsn/Lexorium/releases/download/${{ env.VERSION }}/Lexorium_${{ env.RAW_VERSION }}_x64-setup.exe'

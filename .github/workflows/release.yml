@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   build:
@@ -62,8 +63,63 @@ jobs:
         run: npm ci
         working-directory: app
 
+      # Publishing to an already-published release would silently replace its
+      # assets and invalidate the Homebrew/WinGet checksums computed against
+      # them. Only publish when the version has no published release yet.
+      - name: Check if version is already released
+        id: relcheck
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(node -p "require('./app/src-tauri/tauri.conf.json').version")
+          echo "version=v$VERSION" >> "$GITHUB_OUTPUT"
+          if [ "$(gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft 2>/dev/null)" = "false" ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "v$VERSION is already published — building without publishing."
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # macOS code signing + notarization (Developer ID) — activates only when
+      # the secrets exist. Signed + notarized builds install via Homebrew with
+      # no Gatekeeper warning and no xattr workaround.
+      - name: Set up macOS signing
+        if: matrix.platform == 'macos'
+        shell: bash
+        env:
+          DEVID_CERT: ${{ secrets.APPLE_DEVID_CERT_P12 }}
+          CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DEVID_CERT" ]; then
+            echo "No Developer ID certificate secret — building unsigned."
+            exit 0
+          fi
+          # Tauri imports the certificate itself from these env vars.
+          # Normalize to one line — a wrapped base64 secret would corrupt GITHUB_ENV.
+          {
+            echo "APPLE_CERTIFICATE=$(printf '%s' "$DEVID_CERT" | tr -d '\n\r')"
+            echo "APPLE_CERTIFICATE_PASSWORD=$CERT_PASSWORD"
+            echo "APPLE_SIGNING_IDENTITY=Developer ID Application: Marius Antonsen ($TEAM_ID)"
+          } >> "$GITHUB_ENV"
+          # Notarization via ASC API key.
+          if [ -n "$ASC_API_KEY_P8" ]; then
+            KEY_PATH="$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8"
+            echo "$ASC_API_KEY_P8" | openssl base64 -d -A -out "$KEY_PATH"
+            {
+              echo "APPLE_API_KEY=$ASC_KEY_ID"
+              echo "APPLE_API_ISSUER=$ASC_ISSUER_ID"
+              echo "APPLE_API_KEY_PATH=$KEY_PATH"
+            } >> "$GITHUB_ENV"
+          fi
+
       - name: Build Tauri app
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || steps.relcheck.outputs.published == 'true'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,7 +127,7 @@ jobs:
           projectPath: app
 
       - name: Build and publish Tauri app
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.relcheck.outputs.published == 'false'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -82,22 +138,3 @@ jobs:
           releaseBody: 'See the assets below to download and install this version.'
           releaseDraft: true
           prerelease: false
-
-      - name: Trigger Homebrew Workflow
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.platform == 'macos'
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION=$(node -p "require('./app/src-tauri/tauri.conf.json').version")
-          gh workflow run homebrew.yml -f version="v$VERSION"
-
-      - name: Trigger WinGet Workflow
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && matrix.platform == 'windows'
-        continue-on-error: true
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION=$(node -p "require('./app/src-tauri/tauri.conf.json').version")
-          gh workflow run winget.yml -f version="v$VERSION"
