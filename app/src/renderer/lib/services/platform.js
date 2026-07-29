@@ -6,9 +6,16 @@
 
 const isTauri = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 
+// Cache dynamic imports so each Tauri module loads once, not per call.
+const tauriModules = {};
+async function tauriImport(name, loader) {
+  if (!tauriModules[name]) tauriModules[name] = loader();
+  return tauriModules[name];
+}
+
 async function invoke(cmd, args) {
   if (isTauri()) {
-    const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+    const { invoke: tauriInvoke } = await tauriImport('core', () => import('@tauri-apps/api/core'));
     return tauriInvoke(cmd, args);
   }
   console.warn(`[platform] No backend for command: ${cmd}`);
@@ -17,7 +24,7 @@ async function invoke(cmd, args) {
 
 async function listen(event, handler) {
   if (isTauri()) {
-    const { listen: tauriListen } = await import('@tauri-apps/api/event');
+    const { listen: tauriListen } = await tauriImport('event', () => import('@tauri-apps/api/event'));
     return tauriListen(event, (e) => handler(e.payload));
   }
   return () => {};
@@ -79,7 +86,7 @@ export async function saveLastOpenedFile(filePath) {
 }
 
 export async function getRecentFiles() {
-  return invoke('get_recent_files') || [];
+  return (await invoke('get_recent_files')) ?? [];
 }
 
 export async function addRecentFile(filePath) {
@@ -100,7 +107,7 @@ export async function getAIConfig() {
     apiKey: '',
     providers: [
       { id: 'openai', name: 'OpenAI', defaultModel: 'gpt-4o' },
-      { id: 'anthropic', name: 'Anthropic', defaultModel: 'claude-sonnet-4-20250514' },
+      { id: 'anthropic', name: 'Anthropic', defaultModel: 'claude-sonnet-5' },
       { id: 'openrouter', name: 'OpenRouter', defaultModel: 'openai/gpt-4o' },
     ],
   };

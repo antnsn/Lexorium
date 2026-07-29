@@ -247,30 +247,27 @@ Capabilities live in `app/src-tauri/capabilities/default.json`. Current permissi
 
 ### Current Issues
 
-- `app/src/renderer/lib/services/electron.js` — dead file from Electron era, should be deleted
-- Unused CSS selectors in `Sidebar.svelte`: `.undo-container`, `.undo-btn`, `.undo-btn:hover`
 - TagTree a11y: `<span>` with click handler needs ARIA role and keyboard handler
-- `struct Document` in `document.rs` is never constructed (warning)
-- Debug `console.log` statements in `platform.js` `listen()` — remove before release
 - Dark mode preference not persisted (resets on restart)
-- AI commands in Rust are stubs — need `reqwest` HTTP implementation
+- `ai_process` makes a second sequential API call for title generation — could be merged into one request
+- `alert()` used for error reporting in `App.svelte` — replace with in-app toast
+- MAS (sandboxed) builds cannot reopen recent/last files after restart — needs security-scoped bookmarks (see `docs/mac-app-store.md`)
 
-### Legacy Files (safe to delete)
+### Legacy Files
 
-- `app/main.js`, `app/renderer.js`, `app/styles.css`, `app/index.html` — old Electron app
-- `app/preload.js`, `app/menu.js`, `app/chatgpt.js`, `app/ai-provider.js`, `app/utils.js`, `app/config.js`
-- `app/forge.config.js` — Electron Forge config
-- `app/src/renderer/lib/services/electron.js` — dead Electron service
-- `macos-app/` — experimental SwiftUI app (superseded)
+Old Electron app files (`main.js`, `renderer.js`, `forge.config.js`, etc.) are
+already deleted. Remaining: `macos-app/` — experimental SwiftUI app (superseded,
+safe to delete).
 
 ### Roadmap
 
-1. **AI integration** — Port `ai-provider.js` logic to Rust with `reqwest` for HTTP calls
+1. ~~AI integration~~ — Done: `reqwest` implementation in `ai.rs` with AES-256-GCM encrypted API keys
 2. **Persist preferences** — Dark mode, sidebar state, window size saved to config
-3. **Recent files** — File → Recent submenu using `get_recent_files` command
-4. **Code block copy button** — Add copy button to rendered code blocks in NoteCard
-5. **Polish** — Vendor Font Awesome, code-split highlight.js, clean up dead files
-6. **CI/CD** — Update GitHub Actions for Tauri builds (macOS, Windows, Linux)
+3. ~~Recent files~~ — Done: sidebar Recent section + `get_recent_files`/`add_recent_file`
+4. ~~Code block copy button~~ — Done in NoteCard
+5. **Polish** — Vendor Font Awesome, code-split highlight.js
+6. **CI/CD** — Tauri builds (macOS, Windows, Linux) + Mac App Store pipeline (`mas.yml`, on hold)
+7. **Security-scoped bookmarks** — restore recent/last-file access in sandboxed MAS builds
 
 ---
 

@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+use std::sync::OnceLock;
+use std::time::Duration;
 use tauri::Manager;
 
 // AES-256-GCM encryption for API keys at rest
@@ -133,6 +135,9 @@ fn decrypt_value(key: &[u8; 32], entry: &EncryptedEntry) -> Result<String, Strin
         .map_err(|e| format!("Base64 decode failed: {}", e))?;
     let nonce_bytes = BASE64.decode(&entry.nonce)
         .map_err(|e| format!("Base64 nonce decode failed: {}", e))?;
+    if nonce_bytes.len() != 12 {
+        return Err("Corrupted key store: invalid nonce length".into());
+    }
     let nonce = Nonce::from_slice(&nonce_bytes);
 
     let plaintext = cipher.decrypt(nonce, ciphertext.as_ref())
@@ -202,7 +207,7 @@ fn set_api_key(app: &tauri::AppHandle, provider: &str, plaintext: &str) -> Resul
 fn default_providers() -> Vec<AIProvider> {
     vec![
         AIProvider { id: "openai".into(), name: "OpenAI".into(), default_model: "gpt-4o".into() },
-        AIProvider { id: "anthropic".into(), name: "Anthropic".into(), default_model: "claude-sonnet-4-20250514".into() },
+        AIProvider { id: "anthropic".into(), name: "Anthropic".into(), default_model: "claude-sonnet-5".into() },
         AIProvider { id: "openrouter".into(), name: "OpenRouter".into(), default_model: "openai/gpt-4o".into() },
     ]
 }
@@ -272,7 +277,6 @@ pub async fn ai_process(
     log::info!("ai_process provider={}, model={}", config.provider, config.model);
 
     let api_key = get_api_key(&app, &config.provider);
-    log::info!("ai_process api_key present={}, len={}", !api_key.is_empty(), api_key.len());
 
     if api_key.is_empty() {
         return Err("No API key configured. Open Settings to add one.".into());
@@ -346,6 +350,18 @@ pub async fn ai_process(
 // Provider API calls
 // ---------------------------------------------------------------------------
 
+/// Shared HTTP client: connection reuse + a timeout so a stalled AI request
+/// can't leave the UI in a processing state forever.
+fn http_client() -> &'static reqwest::Client {
+    static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+    CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .timeout(Duration::from_secs(120))
+            .build()
+            .expect("failed to build HTTP client")
+    })
+}
+
 async fn call_openai_compatible(
     config: &AIConfigFile,
     api_key: &str,
@@ -364,8 +380,7 @@ async fn call_openai_compatible(
         config.model.clone()
     };
 
-    let client = reqwest::Client::new();
-    let mut req = client
+    let mut req = http_client()
         .post(format!("{}/chat/completions", base_url))
         .header("Authorization", format!("Bearer {}", api_key))
         .header("Content-Type", "application/json");
@@ -408,7 +423,7 @@ async fn call_anthropic(
     user_msg: &str,
 ) -> Result<String, String> {
     let model = if config.model.is_empty() {
-        "claude-sonnet-4-20250514".to_string()
+        "claude-sonnet-5".to_string()
     } else {
         config.model.clone()
     };
@@ -422,7 +437,7 @@ async fn call_anthropic(
         ]
     });
 
-    let resp = reqwest::Client::new()
+    let resp = http_client()
         .post("https://api.anthropic.com/v1/messages")
         .header("x-api-key", api_key)
         .header("anthropic-version", "2023-06-01")

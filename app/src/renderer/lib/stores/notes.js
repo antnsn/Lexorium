@@ -1,4 +1,5 @@
 import { writable, derived, get } from 'svelte/store';
+import { generateId } from '../utils/id.js';
 
 function createNotesStore() {
   const { subscribe, set, update } = writable({
@@ -55,10 +56,6 @@ function createNotesStore() {
     return `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()} - ${pad(now.getHours())}:${pad(now.getMinutes())}`;
   }
 
-  function genId() {
-    return Math.random().toString(36).substring(2, 11);
-  }
-
   return {
     subscribe,
     filePath,
@@ -93,7 +90,7 @@ function createNotesStore() {
       const extracted = extractTags(content);
       const merged = [...new Set([...tags, ...extracted])];
       const section = {
-        id: genId(),
+        id: generateId(),
         title: title || timestamp(),
         content,
         tags: merged,
@@ -169,7 +166,7 @@ function createNotesStore() {
         let content = part.substring(part.indexOf('\n') + 1).trim();
         const startMatch = content.match(/<!--\s*start-section-([a-z0-9]+)\s*-->/);
         const endMatch = content.match(/<!--\s*end-section-([a-z0-9]+)\s*-->/);
-        const id = startMatch ? startMatch[1] : genId();
+        const id = startMatch ? startMatch[1] : generateId();
         if (startMatch && endMatch) {
           content = content.substring(
             startMatch.index + startMatch[0].length,

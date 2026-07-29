@@ -25,6 +25,15 @@
 
   $: displayedNotes = $tagFilteredNotes;
 
+  // Documents are JSON; fall back to legacy markdown conversion.
+  function loadFromContent(content, filePath) {
+    try {
+      notes.load(JSON.parse(content), filePath);
+    } catch {
+      notes.load(notes.convertMarkdown(content), filePath);
+    }
+  }
+
   onMount(async () => {
     settings.load();
     await loadRecentFiles();
@@ -35,13 +44,7 @@
       if (lastPath) {
         const result = await platform.openDocument(lastPath);
         if (result?.content) {
-          try {
-            const parsed = JSON.parse(result.content);
-            notes.load(parsed, result.filePath);
-          } catch {
-            const converted = notes.convertMarkdown(result.content);
-            notes.load(converted, result.filePath);
-          }
+          loadFromContent(result.content, result.filePath);
           await loadRecentFiles();
         }
       }
@@ -55,13 +58,7 @@
 
     cleanups.push(await platform.onFileOpened((data) => {
       if (data?.content) {
-        try {
-          const parsed = JSON.parse(data.content);
-          notes.load(parsed, data.filePath);
-        } catch {
-          const converted = notes.convertMarkdown(data.content);
-          notes.load(converted, data.filePath);
-        }
+        loadFromContent(data.content, data.filePath);
         loadRecentFiles();
       }
     }));
@@ -69,13 +66,7 @@
     cleanups.push(await platform.onFileOpenRequest(async () => {
       const result = await platform.openDocument();
       if (result?.content) {
-        try {
-          const parsed = JSON.parse(result.content);
-          notes.load(parsed, result.filePath);
-        } catch {
-          const converted = notes.convertMarkdown(result.content);
-          notes.load(converted, result.filePath);
-        }
+        loadFromContent(result.content, result.filePath);
         await loadRecentFiles();
       }
     }));
@@ -152,9 +143,9 @@
     await saveDocument();
   }
 
-  function handleUndo() {
+  async function handleUndo() {
     notes.undoDelete();
-    saveDocument();
+    await saveDocument();
   }
 
   async function saveDocument() {
@@ -185,13 +176,7 @@
     try {
       const result = await platform.openDocument(filePath);
       if (result?.content) {
-        try {
-          const parsed = JSON.parse(result.content);
-          notes.load(parsed, result.filePath);
-        } catch {
-          const converted = notes.convertMarkdown(result.content);
-          notes.load(converted, result.filePath);
-        }
+        loadFromContent(result.content, result.filePath);
         await loadRecentFiles();
       }
     } catch (err) {

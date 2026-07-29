@@ -1,6 +1,7 @@
 import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
+import DOMPurify from 'dompurify';
 
 // Use a dedicated instance so Vite HMR doesn't double-register extensions
 const md = new Marked(
@@ -18,19 +19,15 @@ const md = new Marked(
 
 /**
  * Render markdown to sanitized HTML.
- * Strips dangerous tags (script, iframe, etc.) to prevent XSS.
+ * DOMPurify strips script/iframe/event handlers/javascript: URLs to prevent XSS.
  */
 export function renderMarkdown(content) {
   if (!content) return '';
   const raw = md.parse(content);
-  const safe = sanitize(raw);
+  const safe = DOMPurify.sanitize(raw, {
+    FORBID_TAGS: ['form', 'input', 'button', 'style'],
+  });
   return addCopyButtons(safe);
-}
-
-const DANGEROUS_TAGS = /(<script[\s>].*?<\/script>|<iframe[\s>].*?<\/iframe>|<object[\s>].*?<\/object>|<embed[\s>].*?<\/embed>|<form[\s>].*?<\/form>|on\w+\s*=\s*["'][^"']*["'])/gi;
-
-function sanitize(html) {
-  return html.replace(DANGEROUS_TAGS, '');
 }
 
 function addCopyButtons(html) {
